@@ -4,6 +4,7 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 import time
 from dotenv import load_dotenv
+import os
 
 # Load environment variables from .env file
 load_dotenv()
@@ -15,11 +16,11 @@ def scrape_website(username, password):
 
     try:
         # Step 1: Open the login page
-        driver.get('https://example.com/login')  # Replace with the actual login URL
+        driver.get('https://mlearning.hoasen.edu.vn')  # Replace with the actual login URL
 
         # Step 2: Find and fill in the login form
-        username_input = driver.find_element_by_name('username')  # Replace with the actual username field name
-        password_input = driver.find_element_by_name('password')  # Replace with the actual password field name
+        username_input = driver.find_element_by_name(os.getenv('USERNAME'))  # Replace with the actual username field name
+        password_input = driver.find_element_by_name(os.getenv('PASSWORD'))  # Replace with the actual password field name
 
         username_input.send_keys(username)
         password_input.send_keys(password)
