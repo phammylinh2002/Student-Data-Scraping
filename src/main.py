@@ -11,7 +11,7 @@ import os
 load_dotenv()
 
 # Function to scrape the dynamic website
-def scrape_website(username, password):
+def scrape_your_course_data(username, password):
     # Set up the Selenium WebDriver
     url = 'https://mlearning.hoasen.edu.vn'
     driver = webdriver.Safari()
@@ -23,7 +23,6 @@ def scrape_website(username, password):
         # Step 2: Find and fill in the login form
         username_input = driver.find_element('name', 'username')
         password_input = driver.find_element('name', 'password')
-
         username_input.send_keys(username)
         password_input.send_keys(password)
 
@@ -60,4 +59,4 @@ def scrape_website(username, password):
 if __name__ == '__main__':
     username = os.environ['USERNAME']
     password = os.environ['PASSWORD']
-    scrape_website(username, password)
+    scrape_your_course_data(username, password)
