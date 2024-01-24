@@ -12,11 +12,12 @@ load_dotenv()
 # Function to scrape the dynamic website
 def scrape_website(username, password):
     # Set up the Selenium WebDriver
+    url = 'https://mlearning.hoasen.edu.vn'
     driver = webdriver.Chrome()
 
     try:
         # Step 1: Open the login page
-        driver.get('https://mlearning.hoasen.edu.vn')
+        driver.get(url)
 
         # Step 2: Find and fill in the login form
         username_input = driver.find_element_by_name('Username')
