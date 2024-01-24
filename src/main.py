@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.support.ui import Select
 import time
 from dotenv import load_dotenv
 import os
@@ -32,11 +33,13 @@ def scrape_website(username, password):
         # Allow some time for the page to load
         time.sleep(3)
 
-        # Step 4: Navigate to the page you want to scrape
-        # driver.get('https://example.com/target-page')
-
-        # Allow some time for the dynamic content to load
-        # time.sleep(5)
+        # Step 4: Get all courses removed from view
+        dropdown_button = driver.find_element('id', 'groupingdropdown')
+        dropdown_button.click()
+        time.sleep(1)
+        item = driver.find_element('path', '//a[@class="dropdown-item" and text()="Remove from view"]')
+        item.click()
+        time.sleep(1)
 
         # Step 5: Scrape the content using BeautifulSoup
         page_source = driver.page_source
