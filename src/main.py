@@ -10,7 +10,7 @@ import os
 load_dotenv()
 
 # Function to scrape the dynamic website
-def scrape_website(username, password):
+def scrape_website():
     # Set up the Selenium WebDriver
     driver = webdriver.Chrome()  # You need to have chromedriver installed and in your PATH
 
@@ -52,4 +52,4 @@ def scrape_website(username, password):
         driver.quit()
 
 # Replace 'your_username' and 'your_password' with your actual credentials
-scrape_website('your_username', 'your_password')
+scrape_website()
