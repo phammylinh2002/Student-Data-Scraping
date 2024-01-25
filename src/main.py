@@ -1,3 +1,5 @@
+#!/usr/local/bin/python3
+
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -68,12 +70,19 @@ def scrape_your_course_data(username, password):
             # f.write(page_source)
             page_source = f.read()
         soup = BeautifulSoup(page_source, 'html.parser')
-        data = soup.select('div[role="listitem"]')[1:] # The first card is eliminated as it is the recently accessed course, which is already included in the course overview
-        print(len(data))
-        # for div in data[:2]:
-        #     print("\n\n\n")
-        #     print(div.prettify())
+        courses = soup.select('div[role="listitem"]')[1:] # The first card is eliminated as it is the recently accessed course, which is already included in the course overview
+        # print(len(data))
+        for course in courses[:10]:
+            print("\n")
+            course_link_tag = course.select_one('a.aalink.coursename.mr-2')
+            course_link = course_link_tag['href'].strip()
+            course_name = course_link_tag.select_one('span.multiline').text.strip()
+            print(course_link)
+            print(course_name)
+            # print(div.prettify())
         # print("Scraping successful!")
+# https://mlearning.hoasen.edu.vn/course/view.php?id=16928
+# https://mlearning.hoasen.edu.vn/user/index.php?id=16928
 
     finally:
         # Close the WebDriver after scraping
