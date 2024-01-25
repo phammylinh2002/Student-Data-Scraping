@@ -12,6 +12,29 @@ import os
 load_dotenv()
 
 
+class Scraper:
+    def __init__(self):
+        self.driver = webdriver.Safari().get('https://mlearning.hoasen.edu.vn')
+
+    def log_in(self, username, password):
+        # Add code to log in here...
+        return
+
+    def scrape_courses(self, page_source):
+        # Add the logic to scrape course data here...
+        # This could be similar to the code in your active file from lines 72 to 90
+        return
+
+    def scrape_profile(self, page_source):
+        # Add the logic to scrape profile data here...
+        # This could be similar to the code in your active file from lines 93 to 97
+        return
+
+    def quit_driver(self):
+        self.driver.quit()
+        return
+
+
 def log_in(driver, username, password):
     # Find and fill in the login form
     username_input = driver.find_element(By.NAME, 'username')
