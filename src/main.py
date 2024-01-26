@@ -8,15 +8,11 @@ import time
 from dotenv import load_dotenv
 import os
 
-# Load environment variables from .env file
-load_dotenv()
-
 
 
 class Scraper:
-    def __init__(self):
-        self.url = 'https://mlearning.hoasen.edu.vn'
-        self.driver = webdriver.Safari().get(self.url)
+    def __init__(self, url, username, password):
+        self.driver = webdriver.Safari().get(url)
 
     def log_in(self, username, password):
         # Find and fill in the login form
@@ -34,58 +30,62 @@ class Scraper:
         
         if is_mine == True:
             # Change display options to scrape all my courses
-            display_options = [
-                {
-                    'removed_from_view': {
-                        'dropdown_button':'//*[@id="groupingdropdown"]',
-                        'option':'//a[contains(text(), "Removed from view")]'
-                    }
-                },
-                {
-                    'show_all': {
-                        'dropdown_button':'//button[contains(@aria-label, " items per page")]',
-                        'option':'//li[@data-limit="0"]'
-                    }
-                },
-                {
-                    'card_display': {
-                        'dropdown_button':'//*[@id="displaydropdown"]',
-                        'option':'//a[@data-value="card"]'
-                    }
-                }
-            ]        
-            for option in display_options:
-                for key, value in option.items():
-                    dropdown_button_xpath = value['dropdown_button']
-                    option_xpath = value['option']
-                self.driver.find_element(By.XPATH, dropdown_button_xpath).click()
-                time.sleep(1)
-                self.driver.find_element(By.XPATH, option_xpath).click()
-                print(f"Display option '{key}' was chosen")
-                time.sleep(3)
+            # display_options = [
+            #     {
+            #         'removed_from_view': {
+            #             'dropdown_button':'//*[@id="groupingdropdown"]',
+            #             'option':'//a[contains(text(), "Removed from view")]'
+            #         }
+            #     },
+            #     {
+            #         'show_all': {
+            #             'dropdown_button':'//button[contains(@aria-label, " items per page")]',
+            #             'option':'//li[@data-limit="0"]'
+            #         }
+            #     },
+            #     {
+            #         'card_display': {
+            #             'dropdown_button':'//*[@id="displaydropdown"]',
+            #             'option':'//a[@data-value="card"]'
+            #         }
+            #     }
+            # ]        
+            # for option in display_options:
+            #     for key, value in option.items():
+            #         dropdown_button_xpath = value['dropdown_button']
+            #         option_xpath = value['option']
+            #     self.driver.find_element(By.XPATH, dropdown_button_xpath).click()
+            #     time.sleep(1)
+            #     self.driver.find_element(By.XPATH, option_xpath).click()
+            #     print(f"Display option '{key}' was chosen")
+            #     time.sleep(3)
+            
             # Scrape!
-            # page_source = self.driver.get(f'{self.url}/my/').page_source
+            self.driver.find_element(By.XPATH, '//*[@id="loggedin-user"]/a').click()
+            time.sleep(3)
+            page_source = self.driver.page_source
             # soup = BeautifulSoup(page_source, 'html.parser')
-            with open('./output/my_courses.html', 'r', encoding='utf-8') as f:
-                # f.write(page_source)
-                page_source = f.read()
-            soup = BeautifulSoup(page_source, 'html.parser')
-            courses = soup.select('div[role="listitem"]')[1:] # The first card is eliminated as it is the recently accessed course, which is already included in the course overview
-            all_my_course_data = {}
-            for course in courses:
-                course_link_tag = course.select_one('a.aalink.coursename.mr-2')
-                course_link = course_link_tag['href'].strip()
-                course_other_data = course_link_tag.select_one('span.multiline').text.strip().split("_")
-                if len(course_other_data) >= 3:
-                    course_name, course_id, sem_id = course_other_data[:3]
-                    all_my_course_data[int(course_id)] = {
-                        'name': course_name,
-                        'sem_id': int(sem_id),
-                        'link': course_link
-                    }
+            with open('./output/my_courses.html', 'w', encoding='utf-8') as f:
+                f.write(page_source)
+                # page_source = f.read()
+            # soup = BeautifulSoup(page_source, 'html.parser')
+            # my_profile_link = soup.select_one('a.d-inline-block.aabtn')['href'].strip()
+            # courses = soup.select('div[role="listitem"]')[1:] # The first card is eliminated as it is the recently accessed course, which is already included in the course overview
+            # all_my_course_data = {}
+            # for course in courses:
+            #     course_link_tag = course.select_one('a.aalink.coursename.mr-2')
+            #     course_link = course_link_tag['href'].strip()
+            #     course_other_data = course_link_tag.select_one('span.multiline').text.strip().split("_")
+            #     if len(course_other_data) >= 3:
+            #         course_name, course_id, sem_id = course_other_data[:3]
+            #         all_my_course_data[int(course_id)] = {
+            #             'name': course_name,
+            #             'sem_id': int(sem_id),
+            #             'link': course_link
+            #         }
         else:
             return
-        return all_my_course_data
+        # return all_my_course_data
 
     def scrape_profile(self, page_source):
         # Add the logic to scrape profile data here...
@@ -102,7 +102,7 @@ def scrape_my_course_data():
     # Step 6: Scrape my profile data
     my_name = soup.select_one('span.usertext.mr-1').text()
     
-    my_profile_link = soup.select_one('a.d-inline-block.aabtn')['href'].strip()
+    
     document = {
         '_id': int(os.environ['MY_ID']),
         'name': os.environ['MY_NAME'],
@@ -129,9 +129,14 @@ def scrape_my_course_data():
 
 # Replace 'your_username' and 'your_password' with your actual credentials
 def main():
-    # driver = webdriver.Safari().get('https://mlearning.hoasen.edu.vn')
+    load_dotenv()
+    url = 'https://mlearning.hoasen.edu.vn'
     username = os.environ['MLEARNING_USERNAME']
     password = os.environ['MLEARNING_PASSWORD']
+    
+    scraper = Scraper(url, username, password)
+    scraper.log_in()
+    
     
     try:
         # log_in(driver, username, password)
