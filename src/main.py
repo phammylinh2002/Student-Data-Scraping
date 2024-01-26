@@ -91,7 +91,7 @@ def scrape_my_course_data():
     # Step 5: Scrape the content using BeautifulSoup
     # page_source = driver.page_source
     # soup = BeautifulSoup(page_source, 'html.parser')
-    with open('../output/my_courses.html', 'r', encoding='utf-8') as f:
+    with open('./output/my_courses.html', 'r', encoding='utf-8') as f:
         # f.write(page_source)
         page_source = f.read()
     soup = BeautifulSoup(page_source, 'html.parser')
@@ -113,14 +113,12 @@ def scrape_my_course_data():
     # Get my profile link
     my_profile_link = soup.select_one('a.d-inline-block.aabtn')['href'].strip()
     document = {
-        'id': os.environ['MY_ID'],
-        'name': int(os.environ['MY_NAME']),
+        '_id': int(os.environ['MY_ID']),
+        'name': os.environ['MY_NAME'],
         'email': os.environ['MLEARNING_USERNAME'],
         'profile_link': my_profile_link,
         'courses': all_my_course_data
     }
-    from pprint import pprint
-    pprint(document)
     # print(len(all_my_course_data))
     # for key, value in all_my_course_data.items():
     #     print(type(key))
@@ -140,15 +138,16 @@ def scrape_my_course_data():
 
 # Replace 'your_username' and 'your_password' with your actual credentials
 def main():
-    driver = webdriver.Safari().get('https://mlearning.hoasen.edu.vn')
+    # driver = webdriver.Safari().get('https://mlearning.hoasen.edu.vn')
     username = os.environ['MLEARNING_USERNAME']
     password = os.environ['MLEARNING_PASSWORD']
     
     try:
-        log_in(driver, username, password)
+        # log_in(driver, username, password)
         scrape_my_course_data()
     finally:
-        quit_driver(driver)
+        # quit_driver(driver)
+        a=1
 
 if __name__ == "__main__":
     main()
