@@ -17,8 +17,14 @@ class Scraper:
         self.driver = webdriver.Safari().get('https://mlearning.hoasen.edu.vn')
 
     def log_in(self, username, password):
-        # Add code to log in here...
-        return
+        # Find and fill in the login form
+        username_input = self.driver.find_element(By.NAME, 'username')
+        password_input = self.driver.find_element(By.NAME, 'password')
+        username_input.send_keys(username)
+        password_input.send_keys(password)
+        # Submit the login form
+        password_input.send_keys(Keys.RETURN)
+        time.sleep(5)
 
     def scrape_courses(self, page_source):
         # Add the logic to scrape course data here...
@@ -34,20 +40,6 @@ class Scraper:
         self.driver.quit()
         return
 
-
-def log_in(driver, username, password):
-    # Find and fill in the login form
-    username_input = driver.find_element(By.NAME, 'username')
-    password_input = driver.find_element(By.NAME, 'password')
-    username_input.send_keys(username)
-    password_input.send_keys(password)
-    # Submit the login form
-    password_input.send_keys(Keys.RETURN)
-    time.sleep(5)
-
-
-def quit_driver(driver):
-    driver.quit()
 
 
 def change_display_options():
