@@ -14,7 +14,8 @@ load_dotenv()
 
 class Scraper:
     def __init__(self):
-        self.driver = webdriver.Safari().get('https://mlearning.hoasen.edu.vn')
+        self.url = 'https://mlearning.hoasen.edu.vn'
+        self.driver = webdriver.Safari().get(self.url)
 
     def log_in(self, username, password):
         # Find and fill in the login form
@@ -26,10 +27,31 @@ class Scraper:
         password_input.send_keys(Keys.RETURN)
         time.sleep(5)
 
-    def scrape_courses(self, page_source):
-        # Add the logic to scrape course data here...
-        # This could be similar to the code in your active file from lines 72 to 90
-        return
+    def scrape_courses(self, is_mine=True):
+        if not isinstance(is_mine, bool):
+            raise ValueError("The parameter `is_mine` must be a boolean value.")
+        if is_mine == True:
+            # page_source = self.driver.get(f'{self.url}/my/').page_source
+            # soup = BeautifulSoup(page_source, 'html.parser')
+            with open('./output/my_courses.html', 'r', encoding='utf-8') as f:
+                # f.write(page_source)
+                page_source = f.read()
+            soup = BeautifulSoup(page_source, 'html.parser')
+            courses = soup.select('div[role="listitem"]')[1:] # The first card is eliminated as it is the recently accessed course, which is already included in the course overview
+            all_my_course_data = {}
+            for course in courses:
+                course_link_tag = course.select_one('a.aalink.coursename.mr-2')
+                course_link = course_link_tag['href'].strip()
+                course_other_data = course_link_tag.select_one('span.multiline').text.strip().split("_")
+                if len(course_other_data) >= 3:
+                    course_name, course_id, sem_id = course_other_data[:3]
+                    all_my_course_data[int(course_id)] = {
+                        'name': course_name,
+                        'sem_id': int(sem_id),
+                        'link': course_link
+                    }
+        else:
+            return
 
     def scrape_profile(self, page_source):
         # Add the logic to scrape profile data here...
@@ -75,34 +97,10 @@ def change_display_options():
 
 
 
-def scrape_my_course_data():
-    # Step 4: Get all courses removed from view and display each as a card
-    time.sleep(5)
+def scrape_my_course_data():    
+    # Step 6: Scrape my profile data
+    my_name = soup.select_one('span.usertext.mr-1').text()
     
-
-    # Step 5: Scrape the content using BeautifulSoup
-    # page_source = driver.page_source
-    # soup = BeautifulSoup(page_source, 'html.parser')
-    with open('./output/my_courses.html', 'r', encoding='utf-8') as f:
-        # f.write(page_source)
-        page_source = f.read()
-    soup = BeautifulSoup(page_source, 'html.parser')
-    courses = soup.select('div[role="listitem"]')[1:] # The first card is eliminated as it is the recently accessed course, which is already included in the course overview
-    all_my_course_data = {}
-    for course in courses:
-        course_link_tag = course.select_one('a.aalink.coursename.mr-2')
-        course_link = course_link_tag['href'].strip()
-        course_other_data = course_link_tag.select_one('span.multiline').text.strip().split("_")
-        if len(course_other_data) >= 3:
-            course_name, course_id, sem_id = course_other_data[:3]
-            all_my_course_data[int(course_id)] = {
-                'name': course_other_data[0],
-                'sem_id': int(course_other_data[2]),
-                'link': course_link
-            }
-    
-    # Step 6: Prepare document to insert into MongoDB
-    # Get my profile link
     my_profile_link = soup.select_one('a.d-inline-block.aabtn')['href'].strip()
     document = {
         '_id': int(os.environ['MY_ID']),
