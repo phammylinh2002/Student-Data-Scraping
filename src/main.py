@@ -12,14 +12,18 @@ import os
 
 class Scraper:
     def __init__(self, url, username, password):
-        self.driver = webdriver.Safari().get(url)
+        self.driver = webdriver.Safari()
+        self.url = url
+        self.username = username
+        self.password = password
 
-    def log_in(self, username, password):
+    def log_in(self):
+        self.driver.get(self.url)
         # Find and fill in the login form
         username_input = self.driver.find_element(By.NAME, 'username')
         password_input = self.driver.find_element(By.NAME, 'password')
-        username_input.send_keys(username)
-        password_input.send_keys(password)
+        username_input.send_keys(self.username)
+        password_input.send_keys(self.password)
         # Submit the login form
         password_input.send_keys(Keys.RETURN)
         time.sleep(5)
@@ -61,12 +65,15 @@ class Scraper:
             #     time.sleep(3)
             
             # Scrape!
-            self.driver.find_element(By.XPATH, '//*[@id="loggedin-user"]/a').click()
+            show_all_courses_param = '&showallcourses=1'
+            profile_courses_url = self.driver.find_element(By.XPATH, '//*[@id="loggedin-user"]/a').get_attribute('href') + show_all_courses_param
+            self.driver.get(profile_courses_url)
             time.sleep(3)
             page_source = self.driver.page_source
             # soup = BeautifulSoup(page_source, 'html.parser')
             with open('./output/my_courses.html', 'w', encoding='utf-8') as f:
                 f.write(page_source)
+                print(f"Successfully get my profile HTML ({profile_courses_url})")
                 # page_source = f.read()
             # soup = BeautifulSoup(page_source, 'html.parser')
             # my_profile_link = soup.select_one('a.d-inline-block.aabtn')['href'].strip()
@@ -98,18 +105,18 @@ class Scraper:
 
 
 
-def scrape_my_course_data():    
-    # Step 6: Scrape my profile data
-    my_name = soup.select_one('span.usertext.mr-1').text()
+# def scrape_my_course_data():    
+#     # Step 6: Scrape my profile data
+#     my_name = soup.select_one('span.usertext.mr-1').text()
     
     
-    document = {
-        '_id': int(os.environ['MY_ID']),
-        'name': os.environ['MY_NAME'],
-        'email': os.environ['MLEARNING_USERNAME'],
-        'profile_link': my_profile_link,
-        'courses': all_my_course_data
-    }
+#     document = {
+#         '_id': int(os.environ['MY_ID']),
+#         'name': os.environ['MY_NAME'],
+#         'email': os.environ['MLEARNING_USERNAME'],
+#         'profile_link': my_profile_link,
+#         'courses': all_my_course_data
+#     }
     # print(len(all_my_course_data))
     # for key, value in all_my_course_data.items():
     #     print(type(key))
@@ -134,16 +141,12 @@ def main():
     username = os.environ['MLEARNING_USERNAME']
     password = os.environ['MLEARNING_PASSWORD']
     
-    scraper = Scraper(url, username, password)
-    scraper.log_in()
-    
-    
     try:
-        # log_in(driver, username, password)
-        scrape_my_course_data()
+        scraper = Scraper(url, username, password)
+        scraper.log_in()
+        scraper.scrape_courses()
     finally:
-        # quit_driver(driver)
-        a=1
+        scraper.quit_driver()
 
 if __name__ == "__main__":
     main()
