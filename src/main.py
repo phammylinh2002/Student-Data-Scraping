@@ -4,10 +4,10 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
-import time
 from dotenv import load_dotenv
+import time
 import os
-
+import re
 
 
 class Scraper:
@@ -65,20 +65,38 @@ class Scraper:
             #     time.sleep(3)
             
             # Scrape!
-            show_all_courses_param = '&showallcourses=1'
-            profile_courses_url = self.driver.find_element(By.XPATH, '//*[@id="loggedin-user"]/a').get_attribute('href') + show_all_courses_param
-            self.driver.get(profile_courses_url)
-            time.sleep(3)
-            page_source = self.driver.page_source
+            # show_all_courses_param = '&showallcourses=1'
+            # my_profile_link = self.driver.find_element(By.XPATH, '//*[@id="loggedin-user"]/a').get_attribute('href')
+            # profile_courses_url = my_profile_link + show_all_courses_param
+            # self.driver.get(profile_courses_url)
+            # time.sleep(3)
+            # page_source = self.driver.page_source
             # soup = BeautifulSoup(page_source, 'html.parser')
-            with open('./output/my_courses.html', 'w', encoding='utf-8') as f:
-                f.write(page_source)
-                print(f"Successfully get my profile HTML ({profile_courses_url})")
-                # page_source = f.read()
-            # soup = BeautifulSoup(page_source, 'html.parser')
-            # my_profile_link = soup.select_one('a.d-inline-block.aabtn')['href'].strip()
+            with open('./output/my_courses.html', 'r', encoding='utf-8') as f:
+                # f.write(page_source)
+                page_source = f.read()
+            soup = BeautifulSoup(page_source, 'html.parser')
+            courses = soup.select('#region-main > div > div > div > section:nth-child(3) > div > ul > li > dl > dd > ul > li > a')
+            all_my_course_data = {}
+            for course in courses:
+                course_link = self.url + '/course/view.php?id=' + re.search(r'course=(\d+)&', course['href']).group(1)
+                course_other_data = course.text.split("_")
+                if len(course_other_data) >= 3:
+                    course_name, course_id, sem_id = course_other_data[:3]
+                    all_my_course_data[int(course_id)] = {
+                        'name': course_name,
+                        'sem_id': int(sem_id),
+                        'link': course_link
+                    }
+            from pprint import pprint
+            pprint(all_my_course_data)
+            
+            # https://mlearning.hoasen.edu.vn/user/view.php?id=19701&course=18507&showallcourses=1
+            # https://mlearning.hoasen.edu.vn/user/index.php?id=18512
+            # Course: https://mlearning.hoasen.edu.vn/course/view.php?id=18512
+            # https://mlearning.hoasen.edu.vn/user/view.php?id=19701&course=18512
+            
             # courses = soup.select('div[role="listitem"]')[1:] # The first card is eliminated as it is the recently accessed course, which is already included in the course overview
-            # all_my_course_data = {}
             # for course in courses:
             #     course_link_tag = course.select_one('a.aalink.coursename.mr-2')
             #     course_link = course_link_tag['href'].strip()
@@ -143,10 +161,13 @@ def main():
     
     try:
         scraper = Scraper(url, username, password)
-        scraper.log_in()
+        # scraper.log_in()
         scraper.scrape_courses()
     finally:
-        scraper.quit_driver()
+        # scraper.quit_driver()
+        a=1
+
+
 
 if __name__ == "__main__":
     main()
