@@ -12,6 +12,7 @@ import os
 load_dotenv()
 
 
+
 class Scraper:
     def __init__(self):
         self.url = 'https://mlearning.hoasen.edu.vn'
@@ -30,7 +31,39 @@ class Scraper:
     def scrape_courses(self, is_mine=True):
         if not isinstance(is_mine, bool):
             raise ValueError("The parameter `is_mine` must be a boolean value.")
+        
         if is_mine == True:
+            # Change display options to scrape all my courses
+            display_options = [
+                {
+                    'removed_from_view': {
+                        'dropdown_button':'//*[@id="groupingdropdown"]',
+                        'option':'//a[contains(text(), "Removed from view")]'
+                    }
+                },
+                {
+                    'show_all': {
+                        'dropdown_button':'//button[contains(@aria-label, " items per page")]',
+                        'option':'//li[@data-limit="0"]'
+                    }
+                },
+                {
+                    'card_display': {
+                        'dropdown_button':'//*[@id="displaydropdown"]',
+                        'option':'//a[@data-value="card"]'
+                    }
+                }
+            ]        
+            for option in display_options:
+                for key, value in option.items():
+                    dropdown_button_xpath = value['dropdown_button']
+                    option_xpath = value['option']
+                self.driver.find_element(By.XPATH, dropdown_button_xpath).click()
+                time.sleep(1)
+                self.driver.find_element(By.XPATH, option_xpath).click()
+                print(f"Display option '{key}' was chosen")
+                time.sleep(3)
+            # Scrape!
             # page_source = self.driver.get(f'{self.url}/my/').page_source
             # soup = BeautifulSoup(page_source, 'html.parser')
             with open('./output/my_courses.html', 'r', encoding='utf-8') as f:
@@ -52,6 +85,7 @@ class Scraper:
                     }
         else:
             return
+        return all_my_course_data
 
     def scrape_profile(self, page_source):
         # Add the logic to scrape profile data here...
@@ -61,39 +95,6 @@ class Scraper:
     def quit_driver(self):
         self.driver.quit()
         return
-
-
-
-def change_display_options():
-    display_options = [
-        {
-            'removed_from_view': {
-                'dropdown_button':'//*[@id="groupingdropdown"]',
-                'option':'//a[contains(text(), "Removed from view")]'
-            }
-        },
-        {
-            'show_all': {
-                'dropdown_button':'//button[contains(@aria-label, " items per page")]',
-                'option':'//li[@data-limit="0"]'
-            }
-        },
-        {
-            'card_display': {
-                'dropdown_button':'//*[@id="displaydropdown"]',
-                'option':'//a[@data-value="card"]'
-            }
-        }
-    ]        
-    for option in display_options:
-        for key, value in option.items():
-            dropdown_button_xpath = value['dropdown_button']
-            option_xpath = value['option']
-        driver.find_element(By.XPATH, dropdown_button_xpath).click()
-        time.sleep(1)
-        driver.find_element(By.XPATH, option_xpath).click()
-        print(f"Display option '{key}' was chosen")
-        time.sleep(3)
 
 
 
