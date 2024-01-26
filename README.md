@@ -1,7 +1,6 @@
 # Student Data Scraping
 
-This is a small project which scrapes the data of the students whom attended the same class with me on MLearning - a learning management platform my university uses. Beside the data about the students' account, the project also intends to get the courses they attended. Each student's data, along with their courses, is stored in a single collection on MongoDB for later processing and loading into a relational database.
-
+This is a small project which scrapes the data of the students who attended the same class with me on MLearning - a learning management platform my university uses. Besides the data about the students' account, the project also intends to get the courses they attended. The data is stored in a single MongoDB collection.
 ## Preparation
 
 * Remove all your courses from the view
