@@ -16,14 +16,14 @@ import re
 
 class Scraper:
     def __init__(self, url, username, password):
-        self.driver = webdriver.Safari()
+        self.driver = webdriver.Chrome()
         self.url = url
         self.username = username
         self.password = password
 
 
     def wait(self):
-        time.sleep(5)
+        time.sleep(randint(5, 15))
 
 
     def log_in(self):
@@ -103,10 +103,16 @@ class Scraper:
             # Prepare the soup
             self.driver.get(link)
             self.wait()
-            show_btn = self.driver.find_element(By.CSS_SELECTOR, "a[data-action='showcount']")            
-            show_btn.click()
+            show_all = self.driver.find_element(By.CSS_SELECTOR, "a[data-action='showcount']").get_attribute('href')
+            self.driver.get(show_all)
+            self.wait()
+            # show_all.click()
             self.wait()
             soup = BeautifulSoup(self.driver.page_source, 'html.parser')
+            
+            # https://mlearning.hoasen.edu.vn/course/view.php?id=16928
+            # https://mlearning.hoasen.edu.vn/user/index.php?id=18507
+            # https://mlearning.hoasen.edu.vn/user/index.php?contextid=1247743&id=18507&perpage=5000
             
             # Print number of classmates
             no_of_classmates = int(self.driver.find_element(By.CSS_SELECTOR, 'p[data-region="participant-count"]').text.split()[0]) - 1
