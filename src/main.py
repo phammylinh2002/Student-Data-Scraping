@@ -7,10 +7,12 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from dotenv import load_dotenv
+from random import randint
 import time
 import os
 import re
 
+    
 
 class Scraper:
     def __init__(self, url, username, password):
@@ -18,6 +20,11 @@ class Scraper:
         self.url = url
         self.username = username
         self.password = password
+
+
+    def wait(self):
+        time.sleep(randint(5, 15))
+
 
     def log_in(self):
         self.driver.get(self.url)
@@ -28,14 +35,14 @@ class Scraper:
         password_input.send_keys(self.password)
         # Submit the login form
         password_input.send_keys(Keys.RETURN)
-        time.sleep(5)
+        self.wait()
 
     def scrape_courses(self, profile_link):
         # Get all courses page soup
         self.driver.get(profile_link)
-        time.sleep(3)
+        self.wait()
         self.driver.find_element(By.XPATH, '//*[@title="View more"]').click()
-        time.sleep(3)
+        self.wait()
         page_source = self.driver.page_source
         soup = BeautifulSoup(page_source, 'html.parser')
         
@@ -64,7 +71,7 @@ class Scraper:
         
         # Scrape profile data
         self.driver.get(profile_link)
-        time.sleep(3)
+        self.wait()
         page_source = self.driver.page_source
         soup = BeautifulSoup(page_source, 'html.parser')
         name = soup.find('div', class_='page-header-headings').find('h1').text
@@ -92,20 +99,20 @@ class Scraper:
             raise TypeError('classmate_list_links must be a dictionary')
 
         all_classmate_profile_links = set()
-        for name, link in classmate_list_links.items():
+        for class_id, link in classmate_list_links.items():
             # Prepare the soup
             self.driver.get(link)
-            time.sleep(3)
+            self.wait()
             wait = WebDriverWait(self.driver, 10)
             show_btn = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "a[data-action='showcount']")))
             show_btn.click()
-            time.sleep(5)
+            self.wait()
             page_source = self.driver.page_source
             soup = BeautifulSoup(page_source, 'html.parser')
             
             # Scrape!
             no_of_classmates = int(soup.select_one('p[data-region="participant-count"]').text.split()[0]) - 1
-            print(f"There are {str(no_of_classmates)} classmates in {name}.", end=" ")
+            print(f"There are {str(no_of_classmates)} classmates in class {class_id}.", end=" ")
             classmates = soup.select('table#participants a')
             classmate_profile_links = set()
             current_no_of_classmates = len(all_classmate_profile_links)
@@ -140,7 +147,7 @@ def main():
         my_student_data = scraper.scrape_profile()
         my_profile_link = my_student_data['profile_link']
         my_student_data['courses'] = scraper.scrape_courses(my_profile_link)
-        print(f"Successfully scraped my student data. I attended in {len(my_student_data['courses'])} classes.\n")
+        print(f"\nSuccessfully scraped my student data. I attended in {len(my_student_data['courses'])} classes.\n")
         # my_student_data = {
         #     'courses': {
         #         1157: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=18019',
@@ -214,19 +221,26 @@ def main():
         #     'profile_link': 'https://mlearning.hoasen.edu.vn/user/profile.php?id=19701'}
         
         
-        # Scrape my classmate data
-        classmate_list_links = {value['name']:value['link'].replace('course', 'user').replace('view', 'index') for key, value in my_student_data['courses'].items()}
+        # Scrape my classmate profile links
+        classmate_list_links = {key:value['link'].replace('course', 'user').replace('view', 'index') for key, value in my_student_data['courses'].items()}
         all_classmate_profile_links = scraper.scrape_classmate_profile_links(my_profile_link, classmate_list_links)
-        print(f"Found {len(all_classmate_profile_links)} unique classmates in {len(classmate_list_links)} classes")
+        print(f"\nFound {len(all_classmate_profile_links)} unique classmates in {len(classmate_list_links)} classes")
+        
+        print(f"\nMy student data:\n{my_student_data}")
+        print(f"\nMy classmate profile links:\n{all_classmate_profile_links}")
+        
         
     finally:
-        # scraper.quit_driver()
-        a=1
+        scraper.quit_driver()
+        # a=1
 
 
 if __name__ == "__main__":
+    start_time = time.time()
     main()
-
+    end_time = time.time()
+    runtime = end_time - start_time
+    print(f"\nRuntime of the program is {runtime//60}m{round(runtime%60)}s")
 
                 
 # My profile and the chosen course: https://mlearning.hoasen.edu.vn/user/view.php?id=19701&course=16928
