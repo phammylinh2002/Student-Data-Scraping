@@ -4,6 +4,8 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from dotenv import load_dotenv
 import time
 import os
@@ -84,6 +86,41 @@ class Scraper:
         return profile_data
     
     
+    def scrape_classmate_profile_links(self, my_profile_link, classmate_list_links):
+        # Check if classmate_list_links is a dictionary
+        if not isinstance(classmate_list_links, dict):
+            raise TypeError('classmate_list_links must be a dictionary')
+
+        all_classmate_profile_links = set()
+        for name, link in classmate_list_links.items():
+            # Prepare the soup
+            self.driver.get(link)
+            time.sleep(3)
+            wait = WebDriverWait(self.driver, 10)
+            show_btn = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "a[data-action='showcount']")))
+            show_btn.click()
+            time.sleep(5)
+            page_source = self.driver.page_source
+            soup = BeautifulSoup(page_source, 'html.parser')
+            
+            # Scrape!
+            no_of_classmates = int(soup.select_one('p[data-region="participant-count"]').text.split()[0]) - 1
+            print(f"There are {str(no_of_classmates)} classmates in {name}.", end=" ")
+            classmates = soup.select('table#participants a')
+            classmate_profile_links = set()
+            current_no_of_classmates = len(all_classmate_profile_links)
+            for classmate in classmates:
+                profile_link = classmate['href'].replace('view', 'profile').split('&')[0]
+                if profile_link != my_profile_link and 'profile' in profile_link:
+                    classmate_profile_links.add(profile_link)            
+            
+            # Update all_classmate_profile_links
+            all_classmate_profile_links.update(classmate_profile_links)
+            print(len(all_classmate_profile_links) - current_no_of_classmates, "new classmate(s).")
+            
+        return all_classmate_profile_links
+    
+    
     def quit_driver(self):
         self.driver.quit()
         return
@@ -100,24 +137,102 @@ def main():
         scraper.log_in()
         
         # Scrape my student data
-        profile_data = scraper.scrape_profile()
-        profile_data['courses'] = scraper.scrape_courses(profile_data['profile_link'])
-        document = profile_data
+        my_student_data = scraper.scrape_profile()
+        my_profile_link = my_student_data['profile_link']
+        my_student_data['courses'] = scraper.scrape_courses(my_profile_link)
+        print(f"Successfully scraped my student data. I attended in {len(my_student_data['courses'])} classes.\n")
+        # my_student_data = {
+        #     'courses': {
+        #         1157: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=18019',
+        #                 'name': 'Corporate Finance',
+        #                 'sem_id': 2234},
+        #         1202: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=17951',
+        #                 'name': 'Luật và Đạo đức Kinh doanh',
+        #                 'sem_id': 2234},
+        #         1271: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=17039',
+        #                 'name': 'Using and Managing IS',
+        #                 'sem_id': 2233},
+        #         1276: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=18546',
+        #                 'name': 'Interaction Design',
+        #                 'sem_id': 2331},
+        #         1277: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=18547',
+        #                 'name': 'Interaction Design',
+        #                 'sem_id': 2331},
+        #         1292: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=16116',
+        #                 'name': 'Thiết kế Web và Đồ họa',
+        #                 'sem_id': 2232},
+        #         1314: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=18512',
+        #                 'name': 'Business System Analysis',
+        #                 'sem_id': 2331},
+        #         1333: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=17853',
+        #                 'name': 'Tư duy Phản biện',
+        #                 'sem_id': 2234},
+        #         1633: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=15937',
+        #                 'name': 'Kinh tế Vĩ mô',
+        #                 'sem_id': 2231},
+        #         1844: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=12608',
+        #                 'name': 'Human Resource Management',
+        #                 'sem_id': 2133},
+        #         1973: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=16928',
+        #                 'name': 'Hệ quản trị Cơ sở Dữ liệu',
+        #                 'sem_id': 2233},
+        #         1974: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=16929',
+        #                 'name': 'Hệ quản trị Cơ sở Dữ liệu',
+        #                 'sem_id': 2233},
+        #         1979: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=16973',
+        #                 'name': 'Phân tích thiết kế HĐT',
+        #                 'sem_id': 2233},
+        #         1980: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=16974',
+        #                 'name': 'Phân tích thiết kế HĐT',
+        #                 'sem_id': 2233},
+        #         1997: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=14943',
+        #                 'name': 'Nhập môn Kinh doanh Quốc tế',
+        #                 'sem_id': 2231},
+        #         2056: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=18507',
+        #                 'name': 'Đồ án Chuyên ngành HTTT',
+        #                 'sem_id': 2331},
+        #         2072: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=15178',
+        #                 'name': 'Nguyên lý Kế toán',
+        #                 'sem_id': 2231},
+        #         2546: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=16985',
+        #                 'name': 'Ứng dụng thương mại điện tử',
+        #                 'sem_id': 2233},
+        #         2547: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=17040',
+        #                 'name': 'Quản lý Bảo mật Thông tin',
+        #                 'sem_id': 2233},
+        #         2548: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=16931',
+        #                 'name': 'Khai thác dữ liệu kinh doanh',
+        #                 'sem_id': 2233},
+        #         2555: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=16986',
+        #                 'name': 'Ứng dụng thương mại điện tử',
+        #                 'sem_id': 2233},
+        #         2704: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=14498',
+        #                 'name': 'Nhập môn Cơ sở Dữ liệu',
+        #                 'sem_id': 2231}},
+        #     'email': 'LINH.PM07144@SINHVIEN.HOASEN.EDU.VN',
+        #     'name': 'Phạm Mỹ Linh',
+        #     'profile_link': 'https://mlearning.hoasen.edu.vn/user/profile.php?id=19701'}
+        
+        
+        # Scrape my classmate data
+        classmate_list_links = {value['name']:value['link'].replace('course', 'user').replace('view', 'index') for key, value in my_student_data['courses'].items()}
+        all_classmate_profile_links = scraper.scrape_classmate_profile_links(my_profile_link, classmate_list_links)
+        print(f"Found {len(all_classmate_profile_links)} unique classmates in {len(classmate_list_links)} classes")
         
     finally:
-        scraper.quit_driver()
-        # a=1
+        # scraper.quit_driver()
+        a=1
 
 
 if __name__ == "__main__":
     main()
 
 
-
-# Course: https://mlearning.hoasen.edu.vn/course/view.php?id=16928
+                
 # My profile and the chosen course: https://mlearning.hoasen.edu.vn/user/view.php?id=19701&course=16928
-# My profile: https://mlearning.hoasen.edu.vn/user/profile.php?id=19701
-# Course participants: https://mlearning.hoasen.edu.vn/user/index.php?id=16928
+# My profile:                       https://mlearning.hoasen.edu.vn/user/profile.php?id=19701
+# Course:       https://mlearning.hoasen.edu.vn/course/view.php?id=16928
+# Participants: https://mlearning.hoasen.edu.vn/user/index.php?id=16928
 # https://mlearning.hoasen.edu.vn/user/view.php?id=19701&course=18507&showallcourses=1
 # https://mlearning.hoasen.edu.vn/user/index.php?id=18512
 # Course: https://mlearning.hoasen.edu.vn/course/view.php?id=18512
