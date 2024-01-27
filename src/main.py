@@ -240,7 +240,7 @@ if __name__ == "__main__":
     main()
     end_time = time.time()
     runtime = end_time - start_time
-    print(f"\nRuntime of the program is {runtime//60}m{round(runtime%60)}s")
+    print(f"\nRuntime of the program is {round(runtime//60)}m{round(runtime%60)}s")
 
                 
 # My profile and the chosen course: https://mlearning.hoasen.edu.vn/user/view.php?id=19701&course=16928
