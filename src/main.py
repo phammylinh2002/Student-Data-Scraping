@@ -23,7 +23,7 @@ class Scraper:
 
 
     def wait(self):
-        time.sleep(randint(5, 15))
+        time.sleep(5)
 
 
     def log_in(self):
@@ -103,23 +103,25 @@ class Scraper:
             # Prepare the soup
             self.driver.get(link)
             self.wait()
-            wait = WebDriverWait(self.driver, 10)
-            show_btn = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, "a[data-action='showcount']")))
+            show_btn = self.driver.find_element(By.CSS_SELECTOR, "a[data-action='showcount']")            
             show_btn.click()
             self.wait()
-            page_source = self.driver.page_source
-            soup = BeautifulSoup(page_source, 'html.parser')
+            soup = BeautifulSoup(self.driver.page_source, 'html.parser')
             
-            # Scrape!
-            no_of_classmates = int(soup.select_one('p[data-region="participant-count"]').text.split()[0]) - 1
+            # Print number of classmates
+            no_of_classmates = int(self.driver.find_element(By.CSS_SELECTOR, 'p[data-region="participant-count"]').text.split()[0]) - 1
             print(f"There are {str(no_of_classmates)} classmates in class {class_id}.", end=" ")
+                         
+            # Scrape!
             classmates = soup.select('table#participants a')
             classmate_profile_links = set()
             current_no_of_classmates = len(all_classmate_profile_links)
             for classmate in classmates:
                 profile_link = classmate['href'].replace('view', 'profile').split('&')[0]
                 if profile_link != my_profile_link and 'profile' in profile_link:
-                    classmate_profile_links.add(profile_link)            
+                    classmate_profile_links.add(profile_link)
+                else:
+                    continue            
             
             # Update all_classmate_profile_links
             all_classmate_profile_links.update(classmate_profile_links)
