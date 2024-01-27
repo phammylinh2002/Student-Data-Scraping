@@ -70,7 +70,7 @@ class Scraper:
         name = soup.find('div', class_='page-header-headings').find('h1').text
         email = soup.find('dt', string='Email address').find_next_sibling('dd').find('a').text
         try: 
-            id = soup.find('dt', string='Yahoo ID').find_next_sibling('dd').find('a')
+            id = soup.find('dt', string='Yahoo ID').find_next_sibling('dd').find('a').text
         except AttributeError:
             id = None
         
@@ -81,7 +81,7 @@ class Scraper:
             'profile_link': profile_link
         }
         if id is not None:
-            profile_data['_id'] = int(id.text)  
+            profile_data['_id'] = int(id)  
         
         return profile_data
     
