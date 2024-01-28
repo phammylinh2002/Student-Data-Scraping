@@ -201,6 +201,34 @@ def scrape_new_student_data():
     pass
 
 
+def scrape_all_student_data(scraper):
+    scraper.log_in()
+    
+    # Scrape your student data
+    your_student_data = scraper.scrape_profile()
+    your_profile_link = your_student_data['profile_link']
+    your_course_data = scraper.scrape_courses(your_profile_link)
+    your_student_data['courses'] = your_course_data
+    print(f"\nSuccessfully scraped your student data. You attended in {len(your_student_data['courses'])} classes.\n")
+    
+    # Scrape your classmate profile links
+    all_classmate_profile_links = scraper.scrape_classmate_profile_links(your_profile_link, your_course_data[:2])
+    print(f"\nFound {len(all_classmate_profile_links)} unique classmates in {len(your_course_data)} classes")
+    
+    # Scrape your classmates' data
+    all_classmate_data = []
+    for link in all_classmate_profile_links:
+        classmate_data = scraper.scrape_profile(is_mine=False, profile_link=link)
+        ### TO-DO: Add handler code for the case when the classmate's profile is private ###
+        # Code here
+        classmate_data['courses'] = scraper.scrape_courses(link)
+        all_classmate_data.append(classmate_data)
+        print(f"Successfully scraped {classmate_data['name']}'s data. He/She attended in {len(classmate_data['courses'])} classes.")
+            
+    return all_classmate_data
+
+
+
 ### TO-DO: Write a function to insert data into MongoDB from the scraped data ###
 def insert_to_mongodb(data):
     # Code here
@@ -213,34 +241,10 @@ def main():
     url = 'https://mlearning.hoasen.edu.vn'
     username = os.environ['MLEARNING_USERNAME']
     password = os.environ['MLEARNING_PASSWORD']
+    scraper = Scraper(url, username, password)
     
     try:
-        scraper = Scraper(url, username, password)
-        scraper.log_in()
-        
-        # Scrape your student data
-        your_student_data = scraper.scrape_profile()
-        your_profile_link = your_student_data['profile_link']
-        your_course_data = scraper.scrape_courses(your_profile_link)
-        your_student_data['courses'] = your_course_data
-        print(f"\nSuccessfully scraped your student data. You attended in {len(your_student_data['courses'])} classes.\n")
-        
-        # Scrape your classmate profile links
-        all_classmate_profile_links = scraper.scrape_classmate_profile_links(your_profile_link, your_course_data[:2])
-        print(f"\nFound {len(all_classmate_profile_links)} unique classmates in {len(your_course_data)} classes")
-        
-        # Scrape your classmates' data
-        all_classmate_data = []
-        for link in all_classmate_profile_links:
-            classmate_data = scraper.scrape_profile(is_mine=False, profile_link=link)
-            ### TO-DO: Add handler code for the case when the classmate's profile is private ###
-            # Code here
-            classmate_data['courses'] = scraper.scrape_courses(link)
-            all_classmate_data.append(classmate_data)
-            print(f"Successfully scraped {classmate_data['name']}'s data. He/She attended in {len(classmate_data['courses'])} classes.")
-                
-        return all_classmate_data
-
+        scrape_all_student_data(scraper)
     finally:
         scraper.quit_driver()
         end_time = time.time()
