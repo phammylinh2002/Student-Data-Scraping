@@ -6,6 +6,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from dotenv import load_dotenv
 from random import randint
+from pymongo import MongoClient
 import time
 import os
 import re
@@ -116,8 +117,6 @@ class Scraper:
         page_source = self.driver.page_source
         soup = BeautifulSoup(page_source, 'html.parser')
         name = soup.find('div', class_='page-header-headings').find('h1').text
-        ### TO-DO: Add handler code for the case when the profile is private ###
-        # The text of the name is "User" if the profile is private
         print(f"\n{name}'s data is being scraped...")        
         email = soup.find('dt', string='Email address').find_next_sibling('dd').find('a').text
         try: 
@@ -192,13 +191,25 @@ class Scraper:
 
 
 
-### TO-DO: Write a function to scrape student data from your new courses ###
-# Note:
-# - Have to query the courses from database, so the data in the database must be there before performing this method
-# - Use Scraper to scrape new data and compare with the data in the database
-def scrape_new_student_data():
-    # Code here
-    pass
+### TO-DO: Write a MongoDB collection class and its methods to insert, update, delete, and query data ###
+class MongoDBCollection:
+    def __init__(self, db_name, collection_name):
+        self.client = MongoClient('mongodb://localhost:27017/')
+        self.db = self.client[db_name]
+        self.collection = self.db[collection_name]
+
+    def insert_data(self, data):
+        return self.collection.insert_one(data).inserted_id
+
+    def update_data(self, query, new_data):
+        return self.collection.update_one(query, {'$set': new_data})
+
+    def delete_data(self, query):
+        return self.collection.delete_one(query)
+
+    def query_data(self, query):
+        return self.collection.find(query)
+
 
 
 def scrape_all_student_data(scraper):
@@ -219,8 +230,6 @@ def scrape_all_student_data(scraper):
     all_classmate_data = []
     for link in all_classmate_profile_links:
         classmate_data = scraper.scrape_profile(is_mine=False, profile_link=link)
-        ### TO-DO: Add handler code for the case when the classmate's profile is private ###
-        # Code here
         classmate_data['courses'] = scraper.scrape_courses(link)
         all_classmate_data.append(classmate_data)
         print(f"Successfully scraped {classmate_data['name']}'s data. He/She attended in {len(classmate_data['courses'])} classes.")
@@ -229,10 +238,14 @@ def scrape_all_student_data(scraper):
 
 
 
-### TO-DO: Write a function to insert data into MongoDB from the scraped data ###
-def insert_to_mongodb(data):
+### TO-DO: Write a function to scrape student data from your new courses ###
+# Note:
+# - Have to query the courses from database, so the data in the database must be there before performing this method
+# - Use Scraper to scrape new data and compare with the data in the database
+def scrape_new_student_data():
     # Code here
     pass
+
 
 
 def main():
