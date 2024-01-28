@@ -134,6 +134,7 @@ class Scraper:
 
 
 def main():
+    start_time = time.time()
     load_dotenv()
     url = 'https://mlearning.hoasen.edu.vn'
     username = os.environ['MLEARNING_USERNAME']
@@ -232,17 +233,15 @@ def main():
         
     finally:
         scraper.quit_driver()
-        # a=1
-
+        end_time = time.time()
+        runtime = end_time - start_time
+        print(f"\nRuntime of the program is {round(runtime//60)}m{round(runtime%60)}s")
+  
 
 if __name__ == "__main__":
-    start_time = time.time()
     main()
-    end_time = time.time()
-    runtime = end_time - start_time
-    print(f"\nRuntime of the program is {round(runtime//60)}m{round(runtime%60)}s")
 
-                
+               
 # Your profile and the chosen course: https://mlearning.hoasen.edu.vn/user/view.php?id=19701&course=16928
 # Your profile:                       https://mlearning.hoasen.edu.vn/user/profile.php?id=19701
 # Course:       https://mlearning.hoasen.edu.vn/course/view.php?id=16928
