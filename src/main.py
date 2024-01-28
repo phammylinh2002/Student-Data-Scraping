@@ -39,24 +39,20 @@ class Scraper:
         show_all_courses_link = profile_link + '&showallcourses=1'
         self.driver.get(show_all_courses_link)
         self.wait()
-        # self.driver.find_element(By.XPATH, '//*[@title="View more"]').click()
-        # self.wait()
         page_source = self.driver.page_source
         soup = BeautifulSoup(page_source, 'html.parser')
 
         # Scraping the soup
         courses = soup.find('dt', string='Course profiles').find_next_sibling('dd').find_all('a')
-        all_course_data = {}
+        all_course_data = []
         for course in courses:
             course_link = self.url + '/course/view.php?id=' + re.search(r'course=(\d+)', course['href']).group(1)
-            course_other_data = course.text.split("_")
-            if len(course_other_data) >= 3:
-                course_name, course_id, sem_id = course_other_data[:3]
-                all_course_data[int(course_id)] = {
-                    'name': course_name,
-                    'sem_id': int(sem_id[:4]),
-                    'link': course_link
-                }
+            course_name = course.text
+            course_data = {
+                'link': course_link,
+                'name': course_name
+            }
+            all_course_data.append(course_data)
         return all_course_data
     
     
@@ -73,9 +69,7 @@ class Scraper:
         page_source = self.driver.page_source
         soup = BeautifulSoup(page_source, 'html.parser')
         name = soup.find('div', class_='page-header-headings').find('h1').text
-        
-        print(f"\n{name}'s data is being scraped...")
-        
+        print(f"\n{name}'s data is being scraped...")        
         email = soup.find('dt', string='Email address').find_next_sibling('dd').find('a').text
         try: 
             id = soup.find('dt', string='Yahoo ID').find_next_sibling('dd').find('a').text
@@ -240,7 +234,8 @@ def main():
             all_classmate_data.append(classmate_data)
             print(f"\nSuccessfully scraped {classmate_data['name']}'s data. He/She attended in {len(classmate_data['courses'])} classes.")
             from pprint import pprint
-            pprint(f"{classmate_data}\n")
+            pprint(classmate_data)
+            print()
         return all_classmate_data
 
     finally:
