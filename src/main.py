@@ -133,6 +133,7 @@ class Scraper:
         return
 
 
+
 def main():
     start_time = time.time()
     load_dotenv()
@@ -221,7 +222,6 @@ def main():
         #     'name': 'Phạm Mỹ Linh',
         #     'profile_link': 'https://mlearning.hoasen.edu.vn/user/profile.php?id=19701'}
         
-        
         # Scrape your classmate profile links
         classmate_list_links = {key:value['link'].replace('course', 'user').replace('view', 'index') for key, value in your_student_data['courses'].items()}
         all_classmate_profile_links = scraper.scrape_classmate_profile_links(your_profile_link, classmate_list_links)
@@ -229,7 +229,6 @@ def main():
         
         print(f"\nYour student data:\n{your_student_data}")
         print(f"\nYour classmate profile links:\n{all_classmate_profile_links}")
-        
         
     finally:
         scraper.quit_driver()
