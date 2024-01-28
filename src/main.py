@@ -116,6 +116,8 @@ class Scraper:
         page_source = self.driver.page_source
         soup = BeautifulSoup(page_source, 'html.parser')
         name = soup.find('div', class_='page-header-headings').find('h1').text
+        ### TO-DO: Add handler code for the case when the profile is private ###
+        # The text of the name is "User" if the profile is private
         print(f"\n{name}'s data is being scraped...")        
         email = soup.find('dt', string='Email address').find_next_sibling('dd').find('a').text
         try: 
@@ -232,6 +234,8 @@ def main():
         all_classmate_data = []
         for link in all_classmate_profile_links:
             classmate_data = scraper.scrape_profile(is_mine=False, profile_link=link)
+            ### TO-DO: Add handler code for the case when the classmate's profile is private ###
+            # Code here
             classmate_data['courses'] = scraper.scrape_courses(link)
             all_classmate_data.append(classmate_data)
             print(f"Successfully scraped {classmate_data['name']}'s data. He/She attended in {len(classmate_data['courses'])} classes.")
