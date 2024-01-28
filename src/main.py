@@ -24,6 +24,18 @@ class Scraper:
 
 
     def log_in(self):
+        """
+        Logs in to the website using the provided username and password.
+
+        This method navigates to the login page, fills in the login form with the provided username and password,
+        and submits the form to log in to the website.
+
+        Args:
+            self (object): The instance of the class.
+
+        Returns:
+            None
+        """
         self.driver.get(self.url)
         # Find and fill in the login form
         username_input = self.driver.find_element(By.NAME, 'username')
@@ -156,77 +168,6 @@ def main():
         your_course_data = scraper.scrape_courses(your_profile_link)
         your_student_data['courses'] = your_course_data
         print(f"\nSuccessfully scraped your student data. You attended in {len(your_student_data['courses'])} classes.\n")
-        # your_student_data = {
-        #     'courses': {
-        #         1157: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=18019',
-        #                 'name': 'Corporate Finance',
-        #                 'sem_id': 2234},
-        #         1202: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=17951',
-        #                 'name': 'Luật và Đạo đức Kinh doanh',
-        #                 'sem_id': 2234},
-        #         1271: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=17039',
-        #                 'name': 'Using and Managing IS',
-        #                 'sem_id': 2233},
-        #         1276: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=18546',
-        #                 'name': 'Interaction Design',
-        #                 'sem_id': 2331},
-        #         1277: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=18547',
-        #                 'name': 'Interaction Design',
-        #                 'sem_id': 2331},
-        #         1292: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=16116',
-        #                 'name': 'Thiết kế Web và Đồ họa',
-        #                 'sem_id': 2232},
-        #         1314: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=18512',
-        #                 'name': 'Business System Analysis',
-        #                 'sem_id': 2331},
-        #         1333: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=17853',
-        #                 'name': 'Tư duy Phản biện',
-        #                 'sem_id': 2234},
-        #         1633: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=15937',
-        #                 'name': 'Kinh tế Vĩ mô',
-        #                 'sem_id': 2231},
-        #         1844: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=12608',
-        #                 'name': 'Human Resource Management',
-        #                 'sem_id': 2133},
-        #         1973: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=16928',
-        #                 'name': 'Hệ quản trị Cơ sở Dữ liệu',
-        #                 'sem_id': 2233},
-        #         1974: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=16929',
-        #                 'name': 'Hệ quản trị Cơ sở Dữ liệu',
-        #                 'sem_id': 2233},
-        #         1979: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=16973',
-        #                 'name': 'Phân tích thiết kế HĐT',
-        #                 'sem_id': 2233},
-        #         1980: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=16974',
-        #                 'name': 'Phân tích thiết kế HĐT',
-        #                 'sem_id': 2233},
-        #         1997: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=14943',
-        #                 'name': 'Nhập môn Kinh doanh Quốc tế',
-        #                 'sem_id': 2231},
-        #         2056: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=18507',
-        #                 'name': 'Đồ án Chuyên ngành HTTT',
-        #                 'sem_id': 2331},
-        #         2072: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=15178',
-        #                 'name': 'Nguyên lý Kế toán',
-        #                 'sem_id': 2231},
-        #         2546: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=16985',
-        #                 'name': 'Ứng dụng thương mại điện tử',
-        #                 'sem_id': 2233},
-        #         2547: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=17040',
-        #                 'name': 'Quản lý Bảo mật Thông tin',
-        #                 'sem_id': 2233},
-        #         2548: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=16931',
-        #                 'name': 'Khai thác dữ liệu kinh doanh',
-        #                 'sem_id': 2233},
-        #         2555: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=16986',
-        #                 'name': 'Ứng dụng thương mại điện tử',
-        #                 'sem_id': 2233},
-        #         2704: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=14498',
-        #                 'name': 'Nhập môn Cơ sở Dữ liệu',
-        #                 'sem_id': 2231}},
-        #     'email': 'LINH.PM07144@SINHVIEN.HOASEN.EDU.VN',
-        #     'name': 'Phạm Mỹ Linh',
-        #     'profile_link': 'https://mlearning.hoasen.edu.vn/user/profile.php?id=19701'}
         
         # Scrape your classmate profile links
         all_classmate_profile_links = scraper.scrape_classmate_profile_links(your_profile_link, your_course_data[:2])
