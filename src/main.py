@@ -53,7 +53,7 @@ class Scraper:
                 course_name, course_id, sem_id = course_other_data[:3]
                 all_course_data[int(course_id)] = {
                     'name': course_name,
-                    'sem_id': int(sem_id),
+                    'sem_id': int(sem_id[:4]),
                     'link': course_link
                 }
         return all_course_data
