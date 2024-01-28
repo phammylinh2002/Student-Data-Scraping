@@ -73,6 +73,9 @@ class Scraper:
         page_source = self.driver.page_source
         soup = BeautifulSoup(page_source, 'html.parser')
         name = soup.find('div', class_='page-header-headings').find('h1').text
+        
+        print(f"\n{name}'s data is being scraped...")
+        
         email = soup.find('dt', string='Email address').find_next_sibling('dd').find('a').text
         try: 
             id = soup.find('dt', string='Yahoo ID').find_next_sibling('dd').find('a').text
@@ -233,7 +236,6 @@ def main():
         all_classmate_data = []
         for link in all_classmate_profile_links:
             classmate_data = scraper.scrape_profile(is_mine=False, profile_link=link)
-            print(f"\n{classmate_data['name']}'s data is being scraped...")
             classmate_data['courses'] = scraper.scrape_courses(link)
             all_classmate_data.append(classmate_data)
             print(f"\nSuccessfully scraped {classmate_data['name']}'s data. He/She attended in {len(classmate_data['courses'])} classes.")
