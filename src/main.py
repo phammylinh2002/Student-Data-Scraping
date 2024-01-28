@@ -213,13 +213,11 @@ def main():
         
         # Scrape your classmates' data
         all_classmate_data = []
-        with open('/Users/1620mili/Desktop/student_data_scraping/output/student_data.txt', 'w') as f:
-            for link in all_classmate_profile_links:
-                classmate_data = scraper.scrape_profile(is_mine=False, profile_link=link)
-                classmate_data['courses'] = scraper.scrape_courses(link)
-                all_classmate_data.append(classmate_data)
-                print(f"Successfully scraped {classmate_data['name']}'s data. He/She attended in {len(classmate_data['courses'])} classes.")
-                f.write(str(classmate_data) + '\n')
+        for link in all_classmate_profile_links:
+            classmate_data = scraper.scrape_profile(is_mine=False, profile_link=link)
+            classmate_data['courses'] = scraper.scrape_courses(link)
+            all_classmate_data.append(classmate_data)
+            print(f"Successfully scraped {classmate_data['name']}'s data. He/She attended in {len(classmate_data['courses'])} classes.")
                 
         return all_classmate_data
 
