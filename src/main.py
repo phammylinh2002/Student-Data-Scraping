@@ -9,8 +9,6 @@ from random import randint
 import time
 import os
 import re
-import traceback
-
     
 
 class Scraper:
