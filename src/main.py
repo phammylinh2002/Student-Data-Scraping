@@ -230,16 +230,6 @@ def main():
         print(f"\nRuntime of the program is {round(runtime//60)}m{round(runtime%60)}s")
   
 
+
 if __name__ == "__main__":
     main()
-
-               
-# Your profile and the chosen course: https://mlearning.hoasen.edu.vn/user/view.php?id=19701&course=16928
-# Your profile:                       https://mlearning.hoasen.edu.vn/user/profile.php?id=19701
-#                                     https://mlearning.hoasen.edu.vn/user/profile.php?id=2110&showallcourses=1
-# Course:       https://mlearning.hoasen.edu.vn/course/view.php?id=16928
-# Participants: https://mlearning.hoasen.edu.vn/user/index.php?id=16928
-# https://mlearning.hoasen.edu.vn/user/view.php?id=19701&course=18507&showallcourses=1
-# https://mlearning.hoasen.edu.vn/user/index.php?id=18512
-# Course: https://mlearning.hoasen.edu.vn/course/view.php?id=18512
-# https://mlearning.hoasen.edu.vn/user/view.php?id=19701&course=18512
