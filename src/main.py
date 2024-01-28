@@ -47,12 +47,17 @@ class Scraper:
         all_course_data = []
         for course in courses:
             course_link = self.url + '/course/view.php?id=' + re.search(r'course=(\d+)', course['href']).group(1)
-            course_name = course.text
-            course_data = {
-                'link': course_link,
-                'name': course_name
-            }
-            all_course_data.append(course_data)
+            course_name_match = re.search(r"([\w\s]+_\d{4}_\d{4})", course.text)
+            if course_name_match is not None:
+                course_name = course_name_match.group(1)
+                course_data = {
+                    'link': course_link,
+                    'name': course_name
+                }
+                all_course_data.append(course_data)
+            else:
+                print(f"{course.text} is not a valid course name. Skipped.")
+                continue
         return all_course_data
     
     
@@ -96,7 +101,8 @@ class Scraper:
         all_classmate_profile_links = set()
         for index, course in enumerate(your_course_data):
             # Prepare the soup
-            self.driver.get(course['link'])
+            classmate_list_link = course['link'].replace('course', 'user').replace('view', 'index')
+            self.driver.get(classmate_list_link)
             self.wait()
             show_all = self.driver.find_element(By.CSS_SELECTOR, "a[data-action='showcount']").get_attribute('href')
             self.driver.get(show_all)
@@ -105,7 +111,7 @@ class Scraper:
             
             # Print number of classmates
             no_of_classmates = int(self.driver.find_element(By.CSS_SELECTOR, 'p[data-region="participant-count"]').text.split()[0]) - 1
-            print(f"There are {str(no_of_classmates)} classmates in class {course['name']}.", end=" ")
+            print(f"{str(index)}. There are {str(no_of_classmates)} classmates in class {course['name']}.", end=" ")
 
             # Scrape!
             classmates = soup.select('table#participants a')
@@ -120,7 +126,7 @@ class Scraper:
             
             # Update all_classmate_profile_links
             all_classmate_profile_links.update(classmate_profile_links)
-            print(f"{str(index)}. {len(all_classmate_profile_links) - current_no_of_classmates} new classmate(s).")
+            print(f"{len(all_classmate_profile_links) - current_no_of_classmates} new classmate(s).")
             
         return all_classmate_profile_links
     
@@ -147,7 +153,7 @@ def main():
         your_profile_link = your_student_data['profile_link']
         your_course_data = scraper.scrape_courses(your_profile_link)
         your_student_data['courses'] = your_course_data
-        print(f"\nSuccessfully scraped your student data. I attended in {len(your_student_data['courses'])} classes.\n")
+        print(f"\nSuccessfully scraped your student data. You attended in {len(your_student_data['courses'])} classes.\n")
         # your_student_data = {
         #     'courses': {
         #         1157: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=18019',
@@ -221,7 +227,11 @@ def main():
         #     'profile_link': 'https://mlearning.hoasen.edu.vn/user/profile.php?id=19701'}
         
         # Scrape your classmate profile links
-        all_classmate_profile_links = scraper.scrape_classmate_profile_links(your_profile_link, your_course_data)
+        
+        test_course_data = [course for course in your_course_data if course['name'] == 'Đồ án Chuyên ngành HTTT']
+        all_classmate_profile_links = scraper.scrape_classmate_profile_links(your_profile_link, test_course_data)
+
+        # all_classmate_profile_links = scraper.scrape_classmate_profile_links(your_profile_link, your_course_data)
         print(f"\nFound {len(all_classmate_profile_links)} unique classmates in {len(your_course_data)} classes")
         
         # Scrape your classmates' data
