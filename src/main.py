@@ -257,7 +257,13 @@ def main():
     scraper = Scraper(url, username, password)
     
     try:
-        scrape_all_student_data(scraper)
+        which_action = input("Which action do you want to perform?\n[1] Scrape all student data\n[2] Scrape new student data\nYour answer: ")
+        if which_action == '1':
+            scrape_all_student_data(scraper)
+        elif which_action == '2':
+            scrape_new_student_data()
+        else:
+            print("Invalid input. Please try again.")
     finally:
         scraper.quit_driver()
         end_time = time.time()
