@@ -36,6 +36,7 @@ class Scraper:
         Returns:
             None
         """
+        
         self.driver.get(self.url)
         # Find and fill in the login form
         username_input = self.driver.find_element(By.NAME, 'username')
@@ -46,14 +47,25 @@ class Scraper:
         password_input.send_keys(Keys.RETURN)
         self.wait()
 
+    
     def scrape_courses(self, profile_link):
+        """
+        Scrapes the courses from the given profile link.
+
+        Args:
+            profile_link (str): The link to the profile page.
+
+        Returns:
+            list: A list of dictionaries containing the course data, including the course link and name.
+        """
+        
         # Get all courses page soup
         show_all_courses_link = profile_link + '&showallcourses=1'
         self.driver.get(show_all_courses_link)
         self.wait()
         page_source = self.driver.page_source
         soup = BeautifulSoup(page_source, 'html.parser')
-
+        
         # Scraping the soup
         courses = soup.find('dt', string='Course profiles').find_next_sibling('dd').find_all('a')
         invalid_courses = []
