@@ -23,7 +23,7 @@ class Scraper:
 
 
     def wait(self):
-        time.sleep(randint(5, 10))
+        time.sleep(randint(3, 10))
 
 
     def log_in(self):
