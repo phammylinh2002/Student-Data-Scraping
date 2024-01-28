@@ -11,6 +11,7 @@ import os
 import re
     
 
+
 class Scraper:
     def __init__(self, url, username, password):
         self.driver = webdriver.Chrome()
@@ -183,10 +184,26 @@ class Scraper:
         return all_classmate_profile_links
     
     
+    ### TO-DO: Write a function to scrape the student data from the current online users ###
+    # Note:
+    # - Have to query the data from the database first to check if the online users are already in the database
+    # - If not, scrape their data and insert to the database.
+    # - To perform this, there must be data in the database first.
+    def scrape_online_student_data(self):
+        # Code here
+        pass
+    
+    
     def quit_driver(self):
         self.driver.quit()
         return
 
+
+
+### TO-DO: Write a function to insert data into MongoDB from the scraped data ###
+def insert_to_mongodb(data):
+    # Code here
+    pass
 
 
 def main():
