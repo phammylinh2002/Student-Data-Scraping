@@ -88,6 +88,21 @@ class Scraper:
     
     
     def scrape_profile(self, is_mine=True, profile_link=None):
+        """
+        Scrapes the profile data of a user.
+
+        Args:
+            is_mine (bool, optional): Indicates whether the profile is of the logged-in user. Defaults to True.
+            profile_link (str, optional): The link to the profile. Required when `is_mine` is False and vice versa.
+
+        Returns:
+            dict: A dictionary containing the scraped profile data.
+                - 'email': The email address of the user.
+                - 'name': The name of the user.
+                - 'profile_link': The link to the profile.
+                - '_id' (optional): The Yahoo ID of the user, converted to an integer.
+        """
+        
         # Get profile_link if the profile is mine
         if is_mine == True and profile_link == None:
             profile_link = self.driver.find_element(By.XPATH, '//*[@id="loggedin-user"]/a').get_attribute('href')
