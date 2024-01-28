@@ -44,10 +44,11 @@ class Scraper:
 
         # Scraping the soup
         courses = soup.find('dt', string='Course profiles').find_next_sibling('dd').find_all('a')
+        invalid_courses = []
         all_course_data = []
         for course in courses:
             course_link = self.url + '/course/view.php?id=' + re.search(r'course=(\d+)', course['href']).group(1)
-            course_name_match = re.search(r"([\w\s]+_\d{4}_\d{4})", course.text)
+            course_name_match = re.search(r"([\w\s\(\)]+_\d{4}_\d{4})", course.text)
             if course_name_match is not None:
                 course_name = course_name_match.group(1)
                 course_data = {
@@ -56,8 +57,9 @@ class Scraper:
                 }
                 all_course_data.append(course_data)
             else:
-                print(f"{course.text} is not a valid course name. Skipped.")
+                invalid_courses.append(course.text)
                 continue
+        print(f"Found {len(invalid_courses)} courses in his/her data: {invalid_courses}")
         return all_course_data
     
     
@@ -99,7 +101,7 @@ class Scraper:
             raise TypeError('your_course_data must be a list')
 
         all_classmate_profile_links = set()
-        for index, course in enumerate(your_course_data):
+        for index, course in enumerate(your_course_data, start=1):
             # Prepare the soup
             classmate_list_link = course['link'].replace('course', 'user').replace('view', 'index')
             self.driver.get(classmate_list_link)
@@ -227,11 +229,7 @@ def main():
         #     'profile_link': 'https://mlearning.hoasen.edu.vn/user/profile.php?id=19701'}
         
         # Scrape your classmate profile links
-        
-        test_course_data = [course for course in your_course_data if course['name'] == 'Đồ án Chuyên ngành HTTT']
-        all_classmate_profile_links = scraper.scrape_classmate_profile_links(your_profile_link, test_course_data)
-
-        # all_classmate_profile_links = scraper.scrape_classmate_profile_links(your_profile_link, your_course_data)
+        all_classmate_profile_links = scraper.scrape_classmate_profile_links(your_profile_link, your_course_data[:2])
         print(f"\nFound {len(all_classmate_profile_links)} unique classmates in {len(your_course_data)} classes")
         
         # Scrape your classmates' data
@@ -241,7 +239,7 @@ def main():
                 classmate_data = scraper.scrape_profile(is_mine=False, profile_link=link)
                 classmate_data['courses'] = scraper.scrape_courses(link)
                 all_classmate_data.append(classmate_data)
-                print(f"\nSuccessfully scraped {classmate_data['name']}'s data. He/She attended in {len(classmate_data['courses'])} classes.")
+                print(f"Successfully scraped {classmate_data['name']}'s data. He/She attended in {len(classmate_data['courses'])} classes.")
                 f.write(str(classmate_data) + '\n')
                 
         return all_classmate_data
