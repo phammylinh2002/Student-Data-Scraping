@@ -192,6 +192,15 @@ class Scraper:
 
 
 
+### TO-DO: Write a function to scrape student data from your new courses ###
+# Note:
+# - Have to query the courses from database, so the data in the database must be there before performing this method
+# - Use Scraper to scrape new data and compare with the data in the database
+def scrape_new_student_data():
+    # Code here
+    pass
+
+
 ### TO-DO: Write a function to insert data into MongoDB from the scraped data ###
 def insert_to_mongodb(data):
     # Code here
