@@ -91,7 +91,7 @@ class Scraper:
         return profile_data
     
     
-    def scrape_classmate_profile_links(self, my_profile_link, classmate_list_links):
+    def scrape_classmate_profile_links(self, your_profile_link, classmate_list_links):
         # Check if classmate_list_links is a dictionary
         if not isinstance(classmate_list_links, dict):
             raise TypeError('classmate_list_links must be a dictionary')
@@ -122,7 +122,7 @@ class Scraper:
             current_no_of_classmates = len(all_classmate_profile_links)
             for classmate in classmates:
                 profile_link = classmate['href'].replace('view', 'profile').split('&')[0]
-                if profile_link != my_profile_link and 'profile' in profile_link:
+                if profile_link != your_profile_link and 'profile' in profile_link:
                     classmate_profile_links.add(profile_link)
                 else:
                     continue            
@@ -149,12 +149,12 @@ def main():
         scraper = Scraper(url, username, password)
         scraper.log_in()
         
-        # Scrape my student data
-        my_student_data = scraper.scrape_profile()
-        my_profile_link = my_student_data['profile_link']
-        my_student_data['courses'] = scraper.scrape_courses(my_profile_link)
-        print(f"\nSuccessfully scraped my student data. I attended in {len(my_student_data['courses'])} classes.\n")
-        # my_student_data = {
+        # Scrape your student data
+        your_student_data = scraper.scrape_profile()
+        your_profile_link = your_student_data['profile_link']
+        your_student_data['courses'] = scraper.scrape_courses(your_profile_link)
+        print(f"\nSuccessfully scraped your student data. I attended in {len(your_student_data['courses'])} classes.\n")
+        # your_student_data = {
         #     'courses': {
         #         1157: {'link': 'https://mlearning.hoasen.edu.vn/course/view.php?id=18019',
         #                 'name': 'Corporate Finance',
@@ -227,13 +227,13 @@ def main():
         #     'profile_link': 'https://mlearning.hoasen.edu.vn/user/profile.php?id=19701'}
         
         
-        # Scrape my classmate profile links
-        classmate_list_links = {key:value['link'].replace('course', 'user').replace('view', 'index') for key, value in my_student_data['courses'].items()}
-        all_classmate_profile_links = scraper.scrape_classmate_profile_links(my_profile_link, classmate_list_links)
+        # Scrape your classmate profile links
+        classmate_list_links = {key:value['link'].replace('course', 'user').replace('view', 'index') for key, value in your_student_data['courses'].items()}
+        all_classmate_profile_links = scraper.scrape_classmate_profile_links(your_profile_link, classmate_list_links)
         print(f"\nFound {len(all_classmate_profile_links)} unique classmates in {len(classmate_list_links)} classes")
         
-        print(f"\nMy student data:\n{my_student_data}")
-        print(f"\nMy classmate profile links:\n{all_classmate_profile_links}")
+        print(f"\nYour student data:\n{your_student_data}")
+        print(f"\nYour classmate profile links:\n{all_classmate_profile_links}")
         
         
     finally:
@@ -249,8 +249,8 @@ if __name__ == "__main__":
     print(f"\nRuntime of the program is {round(runtime//60)}m{round(runtime%60)}s")
 
                 
-# My profile and the chosen course: https://mlearning.hoasen.edu.vn/user/view.php?id=19701&course=16928
-# My profile:                       https://mlearning.hoasen.edu.vn/user/profile.php?id=19701
+# Your profile and the chosen course: https://mlearning.hoasen.edu.vn/user/view.php?id=19701&course=16928
+# Your profile:                       https://mlearning.hoasen.edu.vn/user/profile.php?id=19701
 # Course:       https://mlearning.hoasen.edu.vn/course/view.php?id=16928
 # Participants: https://mlearning.hoasen.edu.vn/user/index.php?id=16928
 # https://mlearning.hoasen.edu.vn/user/view.php?id=19701&course=18507&showallcourses=1
