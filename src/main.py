@@ -135,6 +135,17 @@ class Scraper:
     
     
     def scrape_classmate_profile_links(self, your_profile_link, your_course_data):
+        """
+        Scrape the profile links of classmates from the given course data.
+
+        Args:
+            your_profile_link (str): The link to your own profile.
+            your_course_data (list): A list of dictionaries containing course information.
+
+        Returns:
+            set: A set of profile links of classmates.
+        """
+        
         # Check if your_course_data is a list
         if not isinstance(your_course_data, list):
             raise TypeError('your_course_data must be a list')
@@ -164,7 +175,7 @@ class Scraper:
                     classmate_profile_links.add(profile_link)
                 else:
                     continue            
-            
+                
             # Update all_classmate_profile_links
             all_classmate_profile_links.update(classmate_profile_links)
             print(f"{len(all_classmate_profile_links) - current_no_of_classmates} new classmate(s).")
