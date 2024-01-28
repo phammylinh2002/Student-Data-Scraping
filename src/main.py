@@ -36,13 +36,14 @@ class Scraper:
 
     def scrape_courses(self, profile_link):
         # Get all courses page soup
-        self.driver.get(profile_link)
+        show_all_courses_link = profile_link + '&showallcourses=1'
+        self.driver.get(show_all_courses_link)
         self.wait()
-        self.driver.find_element(By.XPATH, '//*[@title="View more"]').click()
-        self.wait()
+        # self.driver.find_element(By.XPATH, '//*[@title="View more"]').click()
+        # self.wait()
         page_source = self.driver.page_source
         soup = BeautifulSoup(page_source, 'html.parser')
-        
+
         # Scraping the soup
         courses = soup.find('dt', string='Course profiles').find_next_sibling('dd').find_all('a')
         all_course_data = {}
@@ -232,10 +233,12 @@ def main():
         all_classmate_data = []
         for link in all_classmate_profile_links:
             classmate_data = scraper.scrape_profile(is_mine=False, profile_link=link)
+            print(f"\n{classmate_data['name']}'s data is being scraped...")
             classmate_data['courses'] = scraper.scrape_courses(link)
             all_classmate_data.append(classmate_data)
             print(f"\nSuccessfully scraped {classmate_data['name']}'s data. He/She attended in {len(classmate_data['courses'])} classes.")
-            print(f"{classmate_data}\n")
+            from pprint import pprint
+            pprint(f"{classmate_data}\n")
         return all_classmate_data
 
     finally:
@@ -251,6 +254,7 @@ if __name__ == "__main__":
                
 # Your profile and the chosen course: https://mlearning.hoasen.edu.vn/user/view.php?id=19701&course=16928
 # Your profile:                       https://mlearning.hoasen.edu.vn/user/profile.php?id=19701
+#                                     https://mlearning.hoasen.edu.vn/user/profile.php?id=2110&showallcourses=1
 # Course:       https://mlearning.hoasen.edu.vn/course/view.php?id=16928
 # Participants: https://mlearning.hoasen.edu.vn/user/index.php?id=16928
 # https://mlearning.hoasen.edu.vn/user/view.php?id=19701&course=18507&showallcourses=1
