@@ -186,16 +186,6 @@ class Scraper:
         return all_classmate_profile_links
     
     
-    ### TO-DO: Write a function to scrape the student data from the current online users ###
-    # Note:
-    # - Have to query the data from the database first to check if the online users are already in the database
-    # - If not, scrape their data and insert to the database.
-    # - To perform this, there must be data in the database first.
-    def scrape_online_student_data(self):
-        # Code here
-        pass
-    
-    
     def quit_driver(self):
         self.driver.quit()
         return
