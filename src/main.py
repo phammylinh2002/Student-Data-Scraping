@@ -88,15 +88,15 @@ class Scraper:
         return profile_data
     
     
-    def scrape_classmate_profile_links(self, your_profile_link, classmate_list_links):
-        # Check if classmate_list_links is a dictionary
-        if not isinstance(classmate_list_links, dict):
-            raise TypeError('classmate_list_links must be a dictionary')
+    def scrape_classmate_profile_links(self, your_profile_link, your_course_data):
+        # Check if your_course_data is a list
+        if not isinstance(your_course_data, list):
+            raise TypeError('your_course_data must be a list')
 
         all_classmate_profile_links = set()
-        for class_id, link in classmate_list_links.items():
+        for index, course in enumerate(your_course_data):
             # Prepare the soup
-            self.driver.get(link)
+            self.driver.get(course['link'])
             self.wait()
             show_all = self.driver.find_element(By.CSS_SELECTOR, "a[data-action='showcount']").get_attribute('href')
             self.driver.get(show_all)
@@ -105,8 +105,8 @@ class Scraper:
             
             # Print number of classmates
             no_of_classmates = int(self.driver.find_element(By.CSS_SELECTOR, 'p[data-region="participant-count"]').text.split()[0]) - 1
-            print(f"There are {str(no_of_classmates)} classmates in class {class_id}.", end=" ")
-                         
+            print(f"There are {str(no_of_classmates)} classmates in class {course['name']}.", end=" ")
+
             # Scrape!
             classmates = soup.select('table#participants a')
             classmate_profile_links = set()
@@ -120,7 +120,7 @@ class Scraper:
             
             # Update all_classmate_profile_links
             all_classmate_profile_links.update(classmate_profile_links)
-            print(len(all_classmate_profile_links) - current_no_of_classmates, "new classmate(s).")
+            print(f"{str(index)}. {len(all_classmate_profile_links) - current_no_of_classmates} new classmate(s).")
             
         return all_classmate_profile_links
     
@@ -145,7 +145,8 @@ def main():
         # Scrape your student data
         your_student_data = scraper.scrape_profile()
         your_profile_link = your_student_data['profile_link']
-        your_student_data['courses'] = scraper.scrape_courses(your_profile_link)
+        your_course_data = scraper.scrape_courses(your_profile_link)
+        your_student_data['courses'] = your_course_data
         print(f"\nSuccessfully scraped your student data. I attended in {len(your_student_data['courses'])} classes.\n")
         # your_student_data = {
         #     'courses': {
@@ -220,22 +221,19 @@ def main():
         #     'profile_link': 'https://mlearning.hoasen.edu.vn/user/profile.php?id=19701'}
         
         # Scrape your classmate profile links
-        classmate_list_links = {key:value['link'].replace('course', 'user').replace('view', 'index') for key, value in your_student_data['courses'].items() if key == 2056}
-        all_classmate_profile_links = scraper.scrape_classmate_profile_links(your_profile_link, classmate_list_links)
-        print(f"\nFound {len(all_classmate_profile_links)} unique classmates in {len(classmate_list_links)} classes")
-        # print(f"\nYour student data:\n{your_student_data}")
-        # print(f"\nYour classmate profile links:\n{all_classmate_profile_links}")
+        all_classmate_profile_links = scraper.scrape_classmate_profile_links(your_profile_link, your_course_data)
+        print(f"\nFound {len(all_classmate_profile_links)} unique classmates in {len(your_course_data)} classes")
         
         # Scrape your classmates' data
         all_classmate_data = []
-        for link in all_classmate_profile_links:
-            classmate_data = scraper.scrape_profile(is_mine=False, profile_link=link)
-            classmate_data['courses'] = scraper.scrape_courses(link)
-            all_classmate_data.append(classmate_data)
-            print(f"\nSuccessfully scraped {classmate_data['name']}'s data. He/She attended in {len(classmate_data['courses'])} classes.")
-            from pprint import pprint
-            pprint(classmate_data)
-            print()
+        with open('/Users/1620mili/Desktop/student_data_scraping/output/student_data.txt', 'w') as f:
+            for link in all_classmate_profile_links:
+                classmate_data = scraper.scrape_profile(is_mine=False, profile_link=link)
+                classmate_data['courses'] = scraper.scrape_courses(link)
+                all_classmate_data.append(classmate_data)
+                print(f"\nSuccessfully scraped {classmate_data['name']}'s data. He/She attended in {len(classmate_data['courses'])} classes.")
+                f.write(str(classmate_data) + '\n')
+                
         return all_classmate_data
 
     finally:
