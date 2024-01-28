@@ -9,6 +9,7 @@ from random import randint
 import time
 import os
 import re
+import traceback
 
     
 
@@ -223,7 +224,7 @@ def main():
         #     'profile_link': 'https://mlearning.hoasen.edu.vn/user/profile.php?id=19701'}
         
         # Scrape your classmate profile links
-        classmate_list_links = {key:value['link'].replace('course', 'user').replace('view', 'index') for key, value in your_student_data['courses'][:3].items()}
+        classmate_list_links = {key:value['link'].replace('course', 'user').replace('view', 'index') for key, value in your_student_data['courses'].items() if key == 2056}
         all_classmate_profile_links = scraper.scrape_classmate_profile_links(your_profile_link, classmate_list_links)
         print(f"\nFound {len(all_classmate_profile_links)} unique classmates in {len(classmate_list_links)} classes")
         # print(f"\nYour student data:\n{your_student_data}")
@@ -238,10 +239,6 @@ def main():
             print(f"\nSuccessfully scraped {classmate_data['name']}'s data. He/She attended in {len(classmate_data['courses'])} classes.")
             print(f"{classmate_data}\n")
         return all_classmate_data
-    
-    except Exception as e:
-        print(e)
-        raise SystemExit("Error occurred while scraping the website")
 
     finally:
         scraper.quit_driver()
