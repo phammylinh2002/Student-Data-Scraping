@@ -219,26 +219,23 @@ class MongoDBCollection:
             traceback.print_exception(exc_type, exc_value, exc_traceback)
         self.client.close()
 
-    def insert_data(self, data):
+    def insert(self, data):
         try:
-            if isinstance(data, dict):
-                result = self.collection.insert_one(data)
-                print(f"Successfully inserted 1 document with _id {result.inserted_id}")
-            elif isinstance(data, list):
+            if isinstance(data, list):
                 result = self.collection.insert_many(data)
-                print(f"Successfully inserted {len(result.inserted_ids)} documents with _ids {result.inserted_ids}")
+                print(f"Successfully inserted {len(result.inserted_ids)} documents into the collection `{self.collection.name}`")
             else:
-                raise ValueError("Data must be provided as either a single dictionary or a list of dictionaries")
+                raise ValueError("Data must be provided as a list of dictionaries")
         except errors.PyMongoError as e:
             print(f"An error occurred while inserting the data: {e}")            
             
-    def update_data(self, query, new_data):
+    def update(self, query, new_data):
         return self.collection.update_one(query, {'$set': new_data})
 
-    def delete_data(self, query):
+    def delete(self, query):
         return self.collection.delete_one(query)
 
-    def query_data(self, query):
+    def find(self, query):
         return self.collection.find(query)
 
 
@@ -275,9 +272,9 @@ def scrape_all_student_data(scraper):
         print(f"Successfully scraped {classmate_data['name']}'s data. He/She attended in {len(classmate_data['courses'])} classes.")
     
     # Insert all scraped data into the collection
+    all_scraped_data = all_classmate_data.append(your_student_data)
     with MongoDBCollection(os.environ['MONGODB_CONNECTION_STRING'], os.environ['MONGODB_DB_NAME'], os.environ['MONGODB_COLLECTION_NAME']) as collection:
-        collection.insert_data(your_student_data)
-        collection.insert_data(all_classmate_data)
+        collection.insert(all_scraped_data)
 
 
 
@@ -297,7 +294,8 @@ def scrape_new_student_data(scraper):
         print(f"Found {data_count} document(s) in the collection.")
     
     # Scrape your student data
-    your_student_data = scraper.scrape_profile()
+    
+    your_course_data = scraper.scrape_courses()
 
 
 def main():
