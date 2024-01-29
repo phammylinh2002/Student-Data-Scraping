@@ -294,6 +294,15 @@ def scrape_all_student_data(scraper):
 
 
 def scrape_new_student_data(scraper):
+    """
+    Scrapes and inserts new student data into the collection.
+
+    Args:
+        scraper: An instance of the scraper class used for scraping data.
+
+    Returns:
+        None
+    """
     # Check data in the collection
     collection = MongoDBCollection(os.environ['MONGODB_CONNECTION_STRING'], os.environ['MONGODB_DB_NAME'], os.environ['MONGODB_COLLECTION_NAME'])
     data_count = collection.find().count()
