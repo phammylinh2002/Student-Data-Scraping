@@ -122,22 +122,22 @@ class Scraper:
         page_source = self.driver.page_source
         soup = BeautifulSoup(page_source, 'html.parser')
         name = soup.find('div', class_='page-header-headings').find('h1').text
-        print(f"\n{name}'s data is being scraped...")        
-        email = soup.find('dt', string='Email address').find_next_sibling('dd').find('a').text
-        try: 
-            id = soup.find('dt', string='Yahoo ID').find_next_sibling('dd').find('a').text
-        except AttributeError:
-            id = None
-        
-        # Shape the profile data 
+        print(f"\n{name}'s data is being scraped...")
         profile_data = {
-            'email': email,
-            'name': name,
-            'profile_link': profile_link
-        }
-        if id is not None:
-            profile_data['_id'] = int(id)  
-        
+                'name': name,
+                'profile_link': profile_link
+            }
+        try:
+            email_element = soup.find('dt', string='Email address')
+            if email_element is not None:
+                profile_data['email'] = email_element.find_next_sibling('dd').find('a').text
+
+            id_element = soup.find('dt', string='Yahoo ID')
+            if id_element is not None:
+                profile_data['_id'] = int(id_element.find_next_sibling('dd').find('a').text)
+        except Exception as e:
+            print(f"An error occurred while scraping {name}'s data: {e}. Profile link: {profile_link}.")
+
         return profile_data
     
     
@@ -268,8 +268,8 @@ def scrape_all_student_data(scraper):
             delete = input("Do you want to delete all data in the collection right now? (y/n): ").lower()
             if delete in ['y', 'n']:
                 if delete == 'y':
-                    collection.delete()
-                    print("Successfully deleted all data in the collection.")
+                    result = collection.delete()
+                    print(f"Successfully deleted all data ({result.deleted_count} documents) in the collection.")
                 else:
                     print("No data was deleted.")
             else:
