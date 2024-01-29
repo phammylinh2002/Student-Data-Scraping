@@ -248,7 +248,8 @@ class MongoDBCollection:
         elif amount == 'many':
             return self.collection.find(query)
 
-
+    def count(self):
+        return self.collection.count_documents({})
 
 def scrape_all_student_data(scraper):
     """
@@ -262,7 +263,7 @@ def scrape_all_student_data(scraper):
     """
     # Check data in the collection
     with MongoDBCollection(os.environ['MONGODB_CONNECTION_STRING'], os.environ['MONGODB_DB_NAME'], os.environ['MONGODB_COLLECTION_NAME']) as collection:
-        data_count = collection.find().count()
+        data_count = collection.count()
         if data_count != 0:
             print("There is already data in the collection. Please clear the data to perform this action.")
             delete = input("Do you want to delete all data in the collection right now? (y/n): ").lower()
