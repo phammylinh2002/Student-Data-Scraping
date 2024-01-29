@@ -269,7 +269,6 @@ def scrape_all_student_data(scraper):
     Returns:
         None
     """
-    scraper.log_in()
     
     # Scrape your student data
     your_student_data = scraper.scrape_profile()
