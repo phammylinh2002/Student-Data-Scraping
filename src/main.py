@@ -154,7 +154,7 @@ class Scraper:
         return profile_data
     
     
-    def scrape_classmate_profile_links(self, your_profile_link, your_course_data):
+    def scrape_classmate_profile_links(self, your_profile_link, your_course_data, is_update=False, old_classmate_profile_links=set()):
         """
         Scrape the profile links of classmates from the given course data.
 
@@ -170,7 +170,15 @@ class Scraper:
         if not isinstance(your_course_data, list):
             raise TypeError('your_course_data must be a list')
 
-        all_classmate_profile_links = set()
+        # Check if this is an update
+        if is_update == True and len(old_classmate_profile_links) != 0:
+            all_classmate_profile_links = old_classmate_profile_links
+            current_no_of_classmates = len(all_classmate_profile_links)
+        elif is_update == False and len(old_classmate_profile_links) == 0:
+            all_classmate_profile_links = set()
+        else:
+            raise ValueError('`old_classmate_profile_links` must be provided when `is_update` is False')
+        
         for index, course in enumerate(your_course_data, start=1):
             # Prepare the soup
             classmate_list_link = course['link'].replace('course', 'user').replace('view', 'index')
@@ -188,7 +196,6 @@ class Scraper:
             # Scrape!
             classmates = soup.select('table#participants a')
             classmate_profile_links = set()
-            current_no_of_classmates = len(all_classmate_profile_links)
             for classmate in classmates:
                 profile_link = classmate['href'].replace('view', 'profile').split('&')[0]
                 if profile_link != your_profile_link and 'profile' in profile_link:
@@ -199,8 +206,13 @@ class Scraper:
             # Update all_classmate_profile_links
             all_classmate_profile_links.update(classmate_profile_links)
             print(f"{len(all_classmate_profile_links) - current_no_of_classmates} new classmate(s).")
-            
-        return all_classmate_profile_links
+            current_no_of_classmates = len(all_classmate_profile_links)
+        
+        # Return the set of profile links based on the update
+        if is_update == True:
+            return all_classmate_profile_links.difference(old_classmate_profile_links)
+        else:
+            return all_classmate_profile_links
 
 
 
@@ -235,8 +247,11 @@ class MongoDBCollection:
     def delete(self, query):
         return self.collection.delete_one(query)
 
-    def find(self, query):
-        return self.collection.find(query)
+    def find(self, amount='one', query={}):
+        if amount == 'one':
+            return self.collection.find_one(query)
+        elif amount == 'many':
+            return self.collection.find(query)
 
 
 
@@ -260,7 +275,7 @@ def scrape_all_student_data(scraper):
     print(f"\nSuccessfully scraped your student data. You attended in {len(your_student_data['courses'])} classes.\n")
     
     # Scrape your classmate profile links
-    all_classmate_profile_links = scraper.scrape_classmate_profile_links(your_profile_link, your_course_data[:2])
+    all_classmate_profile_links = scraper.scrape_classmate_profile_links(your_profile_link, your_course_data)
     print(f"\nFound {len(all_classmate_profile_links)} unique classmates in {len(your_course_data)} classes")
     
     # Scrape your classmates' data
@@ -278,25 +293,45 @@ def scrape_all_student_data(scraper):
 
 
 
-### TO-DO: Write a function to scrape student data from your new courses ###
-# Note:
-# - Have to query the courses from database, so the data in the database must be there before performing this method
-# - Use Scraper to scrape new data and compare with the data in the database
 def scrape_new_student_data(scraper):
     # Check data in the collection
     collection = MongoDBCollection(os.environ['MONGODB_CONNECTION_STRING'], os.environ['MONGODB_DB_NAME'], os.environ['MONGODB_COLLECTION_NAME'])
-    all_data = collection.query_data({})
-    data_count = all_data.count()
+    data_count = collection.find().count()
     if data_count == 0:
         print("No data found in the collection. Please scrape all student data first.")
+        return 
+    
+    # Scrape and insert your new courses
+    your_old_student_data = collection.find(amount='one', query={'email': os.environ['MLEARNING_USERNAME']})
+    your_profile_link = your_old_student_data['profile_link']
+    your_old_courses = [course['name'] for course in your_old_student_data['courses']]
+    your_all_current_courses = scraper.scrape_courses(your_profile_link)
+    your_new_courses = [course for course in your_all_current_courses if course['name'] not in your_old_courses]
+    if len(your_new_courses) > 0:
+        print(f"\nYou have {len(your_new_courses)} new courses.")
+        collection.update({'email': os.environ['MLEARNING_USERNAME']}, {'courses': your_all_current_courses})
+    else:
+        print("\nYou do not have any new course.")
+        return
+    
+    # Scrape and insert your new classmates
+    old_classmate_profile_links = set([classmate['profile_link'] for classmate in collection.find(amount='many', query={'email': {'$ne': os.environ['MLEARNING_USERNAME']}})])
+    new_classmate_profile_links = scraper.scrape_classmate_profile_links(your_profile_link, your_new_courses, is_update=True, old_classmate_profile_links=old_classmate_profile_links)
+    no_new_classmates = len(new_classmate_profile_links)
+    if no_new_classmates == 0:
+        print("No new classmates found.")
         return
     else:
-        print(f"Found {data_count} document(s) in the collection.")
+        print(f"\nFound {no_new_classmates} unique classmates in your {len(your_new_courses)} new classes.")
+        new_classmate_data = []
+        for link in new_classmate_profile_links:
+            classmate_data = scraper.scrape_profile(is_mine=False, profile_link=link)
+            classmate_data['courses'] = scraper.scrape_courses(link)
+            new_classmate_data.append(classmate_data)
+            print(f"Successfully scraped {classmate_data['name']}'s data. He/She attended in {len(classmate_data['courses'])} classes.")
+        collection.insert(new_classmate_data)
     
-    # Scrape your student data
     
-    your_course_data = scraper.scrape_courses()
-
 
 def main():
     start_time = time.time()
