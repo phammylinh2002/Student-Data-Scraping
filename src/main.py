@@ -384,19 +384,18 @@ def main():
     which_action = input("Which action do you want to perform?\n[1] Scrape all student data\n[2] Scrape new student data\n[3] Update my classmate course data\nYour answer: ")
     if which_action in ['1', '2', '3']:
         with Scraper(url, username, password) as scraper:
-            try:
-                if which_action == '1':
-                    scrape_all_student_data(scraper)
-                elif which_action == '2':
-                    scrape_new_student_data(scraper)
-                elif which_action == '3':
-                    update_my_classmate_courses(scraper)
-            finally:
-                end_time = time.time()
-                runtime = end_time - start_time
-                print(f"\nRuntime of the program is {round(runtime//60)}m{round(runtime%60)}s")
+            if which_action == '1':
+                scrape_all_student_data(scraper)
+            elif which_action == '2':
+                scrape_new_student_data(scraper)
+            elif which_action == '3':
+                update_my_classmate_courses(scraper)
     else:
         print("Invalid input. Please try again.")
+    
+    end_time = time.time()
+    runtime = end_time - start_time
+    print(f"\nRuntime of the program is {round(runtime//60)}m{round(runtime%60)}s")
 
 
 
