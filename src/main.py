@@ -7,6 +7,7 @@ from selenium.webdriver.common.by import By
 from dotenv import load_dotenv
 from random import randint
 from pymongo import MongoClient
+import traceback
 import time
 import os
 import re
@@ -19,13 +20,9 @@ class Scraper:
         self.url = url
         self.username = username
         self.password = password
-
-
-    def wait(self):
-        time.sleep(randint(3, 10))
-
-
-    def log_in(self):
+    
+    
+    def __enter__(self):
         """
         Logs in to the website using the provided username and password.
 
@@ -48,6 +45,27 @@ class Scraper:
         # Submit the login form
         password_input.send_keys(Keys.RETURN)
         self.wait()
+    
+    
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        """
+        Quits the driver and handles any exceptions that were raised within the with block.
+
+        Args:
+            self (object): The instance of the class.
+
+        Returns:
+            None
+        """
+        
+        if exc_type is not None:
+            traceback.print_exception(exc_type, exc_value, exc_traceback)
+        
+        self.driver.quit()
+
+
+    def wait(self):
+        time.sleep(randint(3, 10))   
 
     
     def scrape_courses(self, profile_link):
@@ -183,11 +201,6 @@ class Scraper:
             print(f"{len(all_classmate_profile_links) - current_no_of_classmates} new classmate(s).")
             
         return all_classmate_profile_links
-    
-    
-    def quit_driver(self):
-        self.driver.quit()
-        return
 
 
 
@@ -242,7 +255,7 @@ def scrape_all_student_data(scraper):
 # Note:
 # - Have to query the courses from database, so the data in the database must be there before performing this method
 # - Use Scraper to scrape new data and compare with the data in the database
-def scrape_new_student_data():
+def scrape_new_student_data(scraper):
     # Code here
     pass
 
@@ -254,21 +267,20 @@ def main():
     url = 'https://mlearning.hoasen.edu.vn'
     username = os.environ['MLEARNING_USERNAME']
     password = os.environ['MLEARNING_PASSWORD']
-    scraper = Scraper(url, username, password)
     
-    try:
-        which_action = input("Which action do you want to perform?\n[1] Scrape all student data\n[2] Scrape new student data\nYour answer: ")
-        if which_action == '1':
-            scrape_all_student_data(scraper)
-        elif which_action == '2':
-            scrape_new_student_data()
-        else:
-            print("Invalid input. Please try again.")
-    finally:
-        scraper.quit_driver()
-        end_time = time.time()
-        runtime = end_time - start_time
-        print(f"\nRuntime of the program is {round(runtime//60)}m{round(runtime%60)}s")
+    with Scraper(url, username, password) as scraper:
+        try:
+            which_action = input("Which action do you want to perform?\n[1] Scrape all student data\n[2] Scrape new student data\nYour answer: ")
+            if which_action == '1':
+                scrape_all_student_data(scraper)
+            elif which_action == '2':
+                scrape_new_student_data(scraper)
+            else:
+                print("Invalid input. Please try again.")
+        finally:
+            end_time = time.time()
+            runtime = end_time - start_time
+            print(f"\nRuntime of the program is {round(runtime//60)}m{round(runtime%60)}s")
   
 
 
