@@ -126,7 +126,7 @@ class Scraper:
         page_source = self.driver.page_source
         soup = BeautifulSoup(page_source, 'html.parser')
         name = soup.find('div', class_='page-header-headings').find('h1').text
-        print(f"\n{name}'s data is being scraped...")
+        print(f"{name}'s data is being scraped...")
         profile_data = {
                 'name': name,
                 'profile_link': profile_link
@@ -296,7 +296,8 @@ def scrape_all_student_data(scraper):
     
     # Scrape your classmates' data
     all_classmate_data = []
-    for link in all_classmate_profile_links:
+    for index, link in enumerate(list(all_classmate_profile_links), start=1):
+        print(f"\n{str(index)}.", end=" ")
         classmate_data = scraper.scrape_profile(is_mine=False, profile_link=link)
         classmate_data['courses'] = scraper.scrape_courses(link)
         all_classmate_data.append(classmate_data)
