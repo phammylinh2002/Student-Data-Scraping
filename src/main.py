@@ -35,7 +35,6 @@ class Scraper:
         Returns:
             None
         """
-        
         self.driver.get(self.url)
         # Find and fill in the login form
         username_input = self.driver.find_element(By.NAME, 'username')
@@ -45,6 +44,7 @@ class Scraper:
         # Submit the login form
         password_input.send_keys(Keys.RETURN)
         self.wait()
+        return self
     
     
     def __exit__(self, exc_type, exc_val, exc_tb):
