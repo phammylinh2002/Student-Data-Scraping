@@ -90,7 +90,7 @@ class Scraper:
             else:
                 invalid_courses.append(course.text)
                 continue
-        print(f"Found {len(invalid_courses)} courses in his/her data: {invalid_courses}")
+        print(f"He/She has {len(invalid_courses)} invalid courses: {'; '.join(invalid_courses)}.")
         return all_course_data
     
     
@@ -168,6 +168,7 @@ class Scraper:
             current_no_of_classmates = len(all_classmate_profile_links)
         elif is_update == False and len(old_classmate_profile_links) == 0:
             all_classmate_profile_links = set()
+            current_no_of_classmates = 0
         else:
             raise ValueError('`old_classmate_profile_links` must be provided when `is_update` is False')
         
@@ -233,8 +234,13 @@ class MongoDBCollection:
     def update(self, query, new_data):
         return self.collection.update_one(query, {'$set': new_data})
 
-    def delete(self, query):
-        return self.collection.delete_one(query)
+    def delete(self, amount='all', query={}):
+        if amount == 'one' and len(query) != 0:
+            return self.collection.delete_one(query)
+        elif (amount == 'some' and len(query) != 0) or (amount == 'all' and len(query) == 0):
+            return self.collection.delete_many(query)
+        else:
+            raise ValueError("`amount` must be 'one', 'some', or 'all'. If `amount` is 'one' or 'some', `query` must be provided.")
 
     def find(self, amount='one', query={}):
         if amount == 'one':
@@ -254,6 +260,21 @@ def scrape_all_student_data(scraper):
     Returns:
         None
     """
+    # Check data in the collection
+    with MongoDBCollection(os.environ['MONGODB_CONNECTION_STRING'], os.environ['MONGODB_DB_NAME'], os.environ['MONGODB_COLLECTION_NAME']) as collection:
+        data_count = collection.find().count()
+        if data_count != 0:
+            print("There is already data in the collection. Please clear the data to perform this action.")
+            delete = input("Do you want to delete all data in the collection right now? (y/n): ").lower()
+            if delete in ['y', 'n']:
+                if delete == 'y':
+                    collection.delete()
+                    print("Successfully deleted all data in the collection.")
+                else:
+                    print("No data was deleted.")
+            else:
+                print("Invalid input. Please try again.")
+            return
     
     # Scrape your student data
     your_student_data = scraper.scrape_profile()
@@ -369,13 +390,12 @@ def main():
     which_action = input("Which action do you want to perform?\n[1] Scrape all student data\n[2] Scrape new student data\n[3] Update my classmate course data\nYour answer: ")
     if which_action in ['1', '2', '3']:
         with Scraper(url, username, password) as scraper:
-            print(scraper)
-            # if which_action == '1':
-            #     scrape_all_student_data(scraper)
-            # elif which_action == '2':
-            #     scrape_new_student_data(scraper)
-            # elif which_action == '3':
-            #     update_my_classmate_courses(scraper)
+            if which_action == '1':
+                scrape_all_student_data(scraper)
+            elif which_action == '2':
+                scrape_new_student_data(scraper)
+            elif which_action == '3':
+                update_my_classmate_courses(scraper)
     else:
         print("Invalid input. Please try again.")
     
