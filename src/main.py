@@ -44,7 +44,11 @@ class Scraper:
         # Submit the login form
         password_input.send_keys(Keys.RETURN)
         self.wait()
-        return self
+        if self.driver.current_url == self.url:
+            print("Login failed. Please check your username and password.")
+        else:
+            print("Successfully logged in.")    
+            return self
     
     
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -251,6 +255,8 @@ class MongoDBCollection:
     def count(self):
         return self.collection.count_documents({})
 
+
+
 def scrape_all_student_data(scraper):
     """
     Scrapes student data for the logged-in user and their classmates.
@@ -270,7 +276,7 @@ def scrape_all_student_data(scraper):
             if delete in ['y', 'n']:
                 if delete == 'y':
                     result = collection.delete()
-                    print(f"Successfully deleted all data ({result.deleted_count} documents) in the collection.")
+                    print(f"Successfully deleted all data ({result.deleted_count} documents) in the collection. Start the program and choose '1' again to scrape all student data.")
                 else:
                     print("No data was deleted.")
             else:
@@ -391,12 +397,15 @@ def main():
     which_action = input("Which action do you want to perform?\n[1] Scrape all student data\n[2] Scrape new student data\n[3] Update my classmate course data\nYour answer: ")
     if which_action in ['1', '2', '3']:
         with Scraper(url, username, password) as scraper:
-            if which_action == '1':
-                scrape_all_student_data(scraper)
-            elif which_action == '2':
-                scrape_new_student_data(scraper)
-            elif which_action == '3':
-                update_my_classmate_courses(scraper)
+            if scraper is not None:
+                if which_action == '1':
+                    scrape_all_student_data(scraper)
+                elif which_action == '2':
+                    scrape_new_student_data(scraper)
+                elif which_action == '3':
+                    update_my_classmate_courses(scraper)
+            else:
+                return
     else:
         print("Invalid input. Please try again.")
     
