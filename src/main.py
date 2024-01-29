@@ -221,7 +221,6 @@ class Scraper:
 
 
 
-### TO-DO: Write a MongoDB collection class and its methods to insert, update, delete, and query data ###
 class MongoDBCollection:
     def __init__(self, connection_string, db_name, collection_name):
         self.client = MongoClient(connection_string)
