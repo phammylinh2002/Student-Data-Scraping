@@ -6,7 +6,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from dotenv import load_dotenv
 from random import randint
-from pymongo import MongoClient
+from pymongo import MongoClient, errors
 import traceback
 import time
 import os
@@ -206,14 +206,24 @@ class Scraper:
 
 ### TO-DO: Write a MongoDB collection class and its methods to insert, update, delete, and query data ###
 class MongoDBCollection:
-    def __init__(self, db_name, collection_name):
-        self.client = MongoClient('mongodb://localhost:27017/')
+    def __init__(self, connection_string, db_name, collection_name):
+        self.client = MongoClient(connection_string)
         self.db = self.client[db_name]
         self.collection = self.db[collection_name]
 
     def insert_data(self, data):
-        return self.collection.insert_one(data).inserted_id
-
+        try:
+            if isinstance(data, dict):
+                result = self.collection.insert_one(data)
+                print(f"Successfully inserted 1 document with _id {result.inserted_id}")
+            elif isinstance(data, list):
+                result = self.collection.insert_many(data)
+                print(f"SUccessfully inserted {len(result.inserted_ids)} documents with _ids {result.inserted_ids}")
+            else:
+                raise ValueError("Data must be provided as either a single dictionary or a list of dictionaries")
+        except errors.PyMongoError as e:
+            print(f"An error occurred while inserting the data: {e}")            
+            
     def update_data(self, query, new_data):
         return self.collection.update_one(query, {'$set': new_data})
 
