@@ -49,7 +49,7 @@ class Scraper:
     
     def __exit__(self, exc_type, exc_value, exc_traceback):
         """
-        Quits the driver and handles any exceptions that were raised within the with block.
+        Quits the driver and prints any exceptions that were raised within the with block.
 
         Args:
             self (object): The instance of the class.
