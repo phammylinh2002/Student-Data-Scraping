@@ -277,6 +277,9 @@ def main():
     url = 'https://mlearning.hoasen.edu.vn'
     username = os.environ['MLEARNING_USERNAME']
     password = os.environ['MLEARNING_PASSWORD']
+    connection_string = os.environ['MONGODB_CONNECTION_STRING']
+    db_name = os.environ['MONGODB_DB_NAME']
+    collection_name = os.environ['MONGODB_COLLECTION_NAME']
     
     with Scraper(url, username, password) as scraper:
         try:
