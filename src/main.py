@@ -210,6 +210,14 @@ class MongoDBCollection:
         self.client = MongoClient(connection_string)
         self.db = self.client[db_name]
         self.collection = self.db[collection_name]
+    
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        if exc_type is not None:
+            traceback.print_exception(exc_type, exc_value, exc_traceback)
+        self.client.close()
 
     def insert_data(self, data):
         try:
@@ -218,7 +226,7 @@ class MongoDBCollection:
                 print(f"Successfully inserted 1 document with _id {result.inserted_id}")
             elif isinstance(data, list):
                 result = self.collection.insert_many(data)
-                print(f"SUccessfully inserted {len(result.inserted_ids)} documents with _ids {result.inserted_ids}")
+                print(f"Successfully inserted {len(result.inserted_ids)} documents with _ids {result.inserted_ids}")
             else:
                 raise ValueError("Data must be provided as either a single dictionary or a list of dictionaries")
         except errors.PyMongoError as e:
@@ -256,7 +264,12 @@ def scrape_all_student_data(scraper):
         classmate_data['courses'] = scraper.scrape_courses(link)
         all_classmate_data.append(classmate_data)
         print(f"Successfully scraped {classmate_data['name']}'s data. He/She attended in {len(classmate_data['courses'])} classes.")
-            
+    
+    # Insert all scraped data into the collection
+    with MongoDBCollection(os.environ['MONGODB_CONNECTION_STRING'], os.environ['MONGODB_DB_NAME'], os.environ['MONGODB_COLLECTION_NAME']) as collection:
+        collection.insert_data(your_student_data)
+        collection.insert_data(all_classmate_data)
+    
     return all_classmate_data
 
 
@@ -277,9 +290,6 @@ def main():
     url = 'https://mlearning.hoasen.edu.vn'
     username = os.environ['MLEARNING_USERNAME']
     password = os.environ['MLEARNING_PASSWORD']
-    connection_string = os.environ['MONGODB_CONNECTION_STRING']
-    db_name = os.environ['MONGODB_DB_NAME']
-    collection_name = os.environ['MONGODB_COLLECTION_NAME']
     
     with Scraper(url, username, password) as scraper:
         try:
