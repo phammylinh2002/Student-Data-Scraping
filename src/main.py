@@ -286,9 +286,18 @@ def scrape_all_student_data(scraper):
 # - Have to query the courses from database, so the data in the database must be there before performing this method
 # - Use Scraper to scrape new data and compare with the data in the database
 def scrape_new_student_data(scraper):
-    # Code here
-    pass
-
+    # Check data in the collection
+    collection = MongoDBCollection(os.environ['MONGODB_CONNECTION_STRING'], os.environ['MONGODB_DB_NAME'], os.environ['MONGODB_COLLECTION_NAME'])
+    all_data = collection.query_data({})
+    data_count = all_data.count()
+    if data_count == 0:
+        print("No data found in the collection. Please scrape all student data first.")
+        return
+    else:
+        print(f"Found {data_count} document(s) in the collection.")
+    
+    # Scrape your student data
+    your_student_data = scraper.scrape_profile()
 
 
 def main():
