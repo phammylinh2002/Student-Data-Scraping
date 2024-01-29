@@ -244,6 +244,15 @@ class MongoDBCollection:
 
 
 def scrape_all_student_data(scraper):
+    """
+    Scrapes student data for the logged-in user and their classmates.
+
+    Args:
+        scraper: An instance of the scraper class used for scraping student data.
+
+    Returns:
+        None
+    """
     scraper.log_in()
     
     # Scrape your student data
@@ -269,8 +278,6 @@ def scrape_all_student_data(scraper):
     with MongoDBCollection(os.environ['MONGODB_CONNECTION_STRING'], os.environ['MONGODB_DB_NAME'], os.environ['MONGODB_COLLECTION_NAME']) as collection:
         collection.insert_data(your_student_data)
         collection.insert_data(all_classmate_data)
-    
-    return all_classmate_data
 
 
 
