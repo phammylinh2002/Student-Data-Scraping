@@ -380,11 +380,13 @@ def main():
     
     with Scraper(url, username, password) as scraper:
         try:
-            which_action = input("Which action do you want to perform?\n[1] Scrape all student data\n[2] Scrape new student data\nYour answer: ")
+            which_action = input("Which action do you want to perform?\n[1] Scrape all student data\n[2] Scrape new student data\n[3] Update my classmate course data\nYour answer: ")
             if which_action == '1':
                 scrape_all_student_data(scraper)
             elif which_action == '2':
                 scrape_new_student_data(scraper)
+            elif which_action == '3':
+                update_my_classmate_courses(scraper)
             else:
                 print("Invalid input. Please try again.")
         finally:
