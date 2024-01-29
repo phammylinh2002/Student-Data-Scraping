@@ -47,7 +47,7 @@ class Scraper:
         self.wait()
     
     
-    def __exit__(self):
+    def __exit__(self, exc_type, exc_val, exc_tb):
         self.driver.quit()
 
 
@@ -217,7 +217,7 @@ class MongoDBCollection:
     def __enter__(self):
         return self
 
-    def __exit__(self):
+    def __exit__(self, exc_type, exc_val, exc_tb):
         self.client.close()
 
     def insert(self, data):
@@ -369,12 +369,13 @@ def main():
     which_action = input("Which action do you want to perform?\n[1] Scrape all student data\n[2] Scrape new student data\n[3] Update my classmate course data\nYour answer: ")
     if which_action in ['1', '2', '3']:
         with Scraper(url, username, password) as scraper:
-            if which_action == '1':
-                scrape_all_student_data(scraper)
-            elif which_action == '2':
-                scrape_new_student_data(scraper)
-            elif which_action == '3':
-                update_my_classmate_courses(scraper)
+            print(scraper)
+            # if which_action == '1':
+            #     scrape_all_student_data(scraper)
+            # elif which_action == '2':
+            #     scrape_new_student_data(scraper)
+            # elif which_action == '3':
+            #     update_my_classmate_courses(scraper)
     else:
         print("Invalid input. Please try again.")
     
