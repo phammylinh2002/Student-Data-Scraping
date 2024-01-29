@@ -227,11 +227,11 @@ class MongoDBCollection:
 
     def insert(self, data):
         try:
-            if isinstance(data, list):
-                result = self.collection.insert_many(data)
-                print(f"Successfully inserted {len(result.inserted_ids)} documents into the collection `{self.collection.name}`")
+            if isinstance(data, dict):
+                result = self.collection.insert_one(data)
+                print(f"Successfully inserted {data['name']}'s data into the collection `{self.collection.name}`")
             else:
-                raise ValueError("Data must be provided as a list of dictionaries")
+                raise ValueError("Data must be provided as a dictionary. Only 1 document can be inserted at a time.")
         except errors.PyMongoError as e:
             print(f"An error occurred while inserting the data: {e}")            
             
@@ -282,31 +282,26 @@ def scrape_all_student_data(scraper):
             else:
                 print("Invalid input. Please try again.")
             return
-    
-    # Scrape your student data
-    your_student_data = scraper.scrape_profile()
-    your_profile_link = your_student_data['profile_link']
-    your_course_data = scraper.scrape_courses(your_profile_link)
-    your_student_data['courses'] = your_course_data
-    print(f"\nSuccessfully scraped your student data. You attended in {len(your_student_data['courses'])} classes.\n")
-    
-    # Scrape your classmate profile links
-    all_classmate_profile_links = scraper.scrape_classmate_profile_links(your_profile_link, your_course_data)
-    print(f"\nFound {len(all_classmate_profile_links)} unique classmates in {len(your_course_data)} classes")
-    
-    # Scrape your classmates' data
-    all_classmate_data = []
-    for index, link in enumerate(list(all_classmate_profile_links), start=1):
-        print(f"\n{str(index)}.", end=" ")
-        classmate_data = scraper.scrape_profile(is_mine=False, profile_link=link)
-        classmate_data['courses'] = scraper.scrape_courses(link)
-        all_classmate_data.append(classmate_data)
-        print(f"Successfully scraped {classmate_data['name']}'s data. He/She attended in {len(classmate_data['courses'])} classes.")
-    
-    # Insert all scraped data into the collection
-    all_scraped_data = all_classmate_data.append(your_student_data)
-    with MongoDBCollection(os.environ['MONGODB_CONNECTION_STRING'], os.environ['MONGODB_DB_NAME'], os.environ['MONGODB_COLLECTION_NAME']) as collection:
-        collection.insert(all_scraped_data)
+        else:
+            # Scrape your student data
+            your_student_data = scraper.scrape_profile()
+            your_profile_link = your_student_data['profile_link']
+            your_course_data = scraper.scrape_courses(your_profile_link)
+            your_student_data['courses'] = your_course_data
+            print(f"\nSuccessfully scraped your student data. You attended in {len(your_student_data['courses'])} classes.\n")
+            collection.insert(your_student_data)
+            
+            # Scrape your classmate profile links
+            all_classmate_profile_links = scraper.scrape_classmate_profile_links(your_profile_link, your_course_data)
+            print(f"\nFound {len(all_classmate_profile_links)} unique classmates in {len(your_course_data)} classes")
+            
+            # Scrape your classmates' data
+            for index, link in enumerate(list(all_classmate_profile_links), start=1):
+                print(f"\n{str(index)}.", end=" ")
+                classmate_data = scraper.scrape_profile(is_mine=False, profile_link=link)
+                classmate_data['courses'] = scraper.scrape_courses(link)
+                print(f"Successfully scraped {classmate_data['name']}'s data. He/She attended in {len(classmate_data['courses'])} classes.")
+                collection.insert(classmate_data)
 
 
 
