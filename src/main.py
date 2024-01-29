@@ -156,16 +156,21 @@ class Scraper:
     
     def scrape_classmate_profile_links(self, your_profile_link, your_course_data, is_update=False, old_classmate_profile_links=set()):
         """
-        Scrape the profile links of classmates from the given course data.
+        Scrapes the profile links of classmates based on the provided course data.
 
         Args:
             your_profile_link (str): The link to your own profile.
-            your_course_data (list): A list of dictionaries containing course information.
+            your_course_data (list): A list of dictionaries containing course data.
+            is_update (bool, optional): Indicates whether this is an update or not. Defaults to False.
+            old_classmate_profile_links (set, optional): The set of old classmate profile links. Required when is_update is False. Defaults to an empty set.
 
         Returns:
-            set: A set of profile links of classmates.
+            set: The set of profile links based on the update.
+
+        Raises:
+            TypeError: If your_course_data is not a list.
+            ValueError: If old_classmate_profile_links is not provided when is_update is False.
         """
-        
         # Check if your_course_data is a list
         if not isinstance(your_course_data, list):
             raise TypeError('your_course_data must be a list')
