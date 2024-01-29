@@ -47,20 +47,7 @@ class Scraper:
         self.wait()
     
     
-    def __exit__(self, exc_type, exc_value, exc_traceback):
-        """
-        Quits the driver and prints any exceptions that were raised within the with block.
-
-        Args:
-            self (object): The instance of the class.
-
-        Returns:
-            None
-        """
-        
-        if exc_type is not None:
-            traceback.print_exception(exc_type, exc_value, exc_traceback)
-        
+    def __exit__(self):
         self.driver.quit()
 
 
@@ -230,9 +217,7 @@ class MongoDBCollection:
     def __enter__(self):
         return self
 
-    def __exit__(self, exc_type, exc_value, exc_traceback):
-        if exc_type is not None:
-            traceback.print_exception(exc_type, exc_value, exc_traceback)
+    def __exit__(self):
         self.client.close()
 
     def insert(self, data):
