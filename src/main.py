@@ -83,7 +83,7 @@ class Scraper:
         all_course_data = []
         for course in courses:
             course_link = self.url + '/course/view.php?id=' + re.search(r'course=(\d+)', course['href']).group(1)
-            course_name_match = re.search(r"([\w\s\(\)\-\&\u0080-\uFFFF]+_\d{4}_\d{4})", course.text)
+            course_name_match = re.search(r"(.+_\d{4}_\d{4})", course.text)
             if course_name_match is not None:
                 course_name = course_name_match.group(1).strip()
                 course_data = {
