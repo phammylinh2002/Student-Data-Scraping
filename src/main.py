@@ -45,9 +45,9 @@ class Scraper:
         password_input.send_keys(Keys.RETURN)
         self.wait()
         if self.driver.current_url == self.url:
-            print("Login failed. Please check your username and password.")
+            print("\nLogin failed. Please check your username and password.")
         else:
-            print("Successfully logged in.")    
+            print("\nSuccessfully logged in.")    
             return self
     
     
