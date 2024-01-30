@@ -229,7 +229,7 @@ class MongoDBCollection:
         try:
             if isinstance(data, dict):
                 result = self.collection.insert_one(data)
-                print(f"Successfully inserted {data['name']}'s data into the collection `{self.collection.name}`")
+                print(f"His/Her data was inserted.")
             else:
                 raise ValueError("Data must be provided as a dictionary. Only 1 document can be inserted at a time.")
         except errors.PyMongoError as e:
@@ -300,7 +300,7 @@ def scrape_all_student_data(scraper):
                 print(f"\n{str(index)}.", end=" ")
                 classmate_data = scraper.scrape_profile(is_mine=False, profile_link=link)
                 classmate_data['courses'] = scraper.scrape_courses(link)
-                print(f"Successfully scraped {classmate_data['name']}'s data. He/She attended in {len(classmate_data['courses'])} classes.")
+                print(f"His/Her data was scraped successfully. He/She attended in {len(classmate_data['courses'])} classes.")
                 collection.insert(classmate_data)
 
 
