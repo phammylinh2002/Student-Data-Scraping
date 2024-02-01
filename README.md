@@ -4,7 +4,7 @@ This project involves extracting information from students who have attended the
 
 ## Result
 
-After a long time of scraping, in my valid 22 courses, I have 632 unique classmates. This is a document representing the data of a classmate I got from scraping:
+After a long time of scraping, in my valid **22 courses**, I have **632 unique classmates**. This is a document representing the data of a classmate I got from scraping:
 
 ![data](figures/a_random_document.png)
 
