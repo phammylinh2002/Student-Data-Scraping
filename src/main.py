@@ -4,10 +4,10 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
 from dotenv import load_dotenv
 from random import randint
 from pymongo import MongoClient, errors
-import traceback
 import time
 import os
 import re
@@ -55,8 +55,12 @@ class Scraper:
         self.driver.quit()
 
 
-    def wait(self):
-        time.sleep(randint(3, 10))   
+    def wait(self, time=0):
+        if time == 0:
+            WebDriverWait(self.driver, 10).until(lambda d: d.execute_script('return document.readyState') == 'complete')
+        else:
+            time.sleep(time)
+
 
     
     def scrape_courses(self, profile_link):
@@ -183,7 +187,7 @@ class Scraper:
             self.wait()
             show_all = self.driver.find_element(By.CSS_SELECTOR, "a[data-action='showcount']").get_attribute('href')
             self.driver.get(show_all)
-            self.wait()
+            self.wait(1)
             soup = BeautifulSoup(self.driver.page_source, 'html.parser')
             
             # Print number of classmates
@@ -228,7 +232,7 @@ class MongoDBCollection:
     def insert(self, data):
         try:
             if isinstance(data, dict):
-                result = self.collection.insert_one(data)
+                self.collection.insert_one(data)
                 print(f"His/Her data was inserted.")
             else:
                 raise ValueError("Data must be provided as a dictionary. Only 1 document can be inserted at a time.")
@@ -276,7 +280,8 @@ def scrape_all_student_data(scraper):
             if delete in ['y', 'n']:
                 if delete == 'y':
                     result = collection.delete()
-                    print(f"Successfully deleted all data ({result.deleted_count} documents) in the collection. Start the program and choose '1' again to scrape all student data.")
+                    print(f"Successfully deleted all data ({result.deleted_count} documents) in the collection.")
+                    scrape_all_student_data(scraper)
                 else:
                     print("No data was deleted.")
             else:
@@ -390,7 +395,10 @@ def main():
     username = os.environ['MLEARNING_USERNAME']
     password = os.environ['MLEARNING_PASSWORD']
     
-    which_action = input("Which action do you want to perform?\n[1] Scrape all student data\n[2] Scrape new student data\n[3] Update my classmate course data\nYour answer: ")
+    option1 = '\n[1] Scrape ALL student data'
+    option2 = '\n[2] Scrape NEW student data'
+    option3 = '\n[3] Update my classmate course data'
+    which_action = input(f"Which action do you want to perform?{option1}{option2}{option3}\nYour answer: ")
     if which_action in ['1', '2', '3']:
         with Scraper(url, username, password) as scraper:
             if scraper is not None:
