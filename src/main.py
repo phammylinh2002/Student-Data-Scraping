@@ -55,11 +55,11 @@ class Scraper:
         self.driver.quit()
 
 
-    def wait(self, time=0):
+    def wait(self, seconds=0):
         if time == 0:
-            WebDriverWait(self.driver, 10).until(lambda d: d.execute_script('return document.readyState') == 'complete')
+            WebDriverWait(self.driver, 60).until(lambda d: d.execute_script('return document.readyState') == 'complete')
         else:
-            time.sleep(time)
+            time.sleep(seconds)
 
 
     
@@ -83,22 +83,21 @@ class Scraper:
         
         # Scraping the soup
         courses = soup.find('dt', string='Course profiles').find_next_sibling('dd').find_all('a')
-        invalid_courses = []
-        all_course_data = []
+        all_course_data = {'valid':[], 'invalid':[]}
         for course in courses:
             course_link = self.url + '/course/view.php?id=' + re.search(r'course=(\d+)', course['href']).group(1)
-            course_name_match = re.search(r"(.+_\d{4}_\d{4})", course.text)
-            if course_name_match is not None:
-                course_name = course_name_match.group(1).strip()
-                course_data = {
+            course_name = course_name_match.group(1).strip()
+            course_data = {
                     'link': course_link,
                     'name': course_name
                 }
-                all_course_data.append(course_data)
+            course_name_match = re.search(r"(.+_\d{4}_\d{4})", course.text)
+            if course_name_match is not None:
+                all_course_data['valid'].append(course_data)
             else:
-                invalid_courses.append(course.text)
+                all_course_data['invalid'].append(course_data)
                 continue
-        print(f"He/She has {len(invalid_courses)} invalid courses: {'; '.join(invalid_courses)}.")
+        print(f"He/She has {len(all_course_data['invalid'] )} invalid courses.")
         return all_course_data
     
     
