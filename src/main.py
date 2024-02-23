@@ -86,18 +86,16 @@ class Scraper:
         all_course_data = {'valid':[], 'invalid':[]}
         for course in courses:
             course_link = self.url + '/course/view.php?id=' + re.search(r'course=(\d+)', course['href']).group(1)
-            course_name = course_name_match.group(1).strip()
-            course_data = {
-                    'link': course_link,
-                    'name': course_name
-                }
             course_name_match = re.search(r"(.+_\d{4}_\d{4})", course.text)
             if course_name_match is not None:
+                course_name = course_name_match.group(1).strip()
+                course_data = {'link': course_link, 'name': course_name}
                 all_course_data['valid'].append(course_data)
             else:
+                course_name = course.text.strip()
+                course_data = {'link': course_link, 'name': course_name}
                 all_course_data['invalid'].append(course_data)
                 continue
-        print(f"He/She has {len(all_course_data['invalid'] )} invalid courses.")
         return all_course_data
     
     
@@ -129,7 +127,7 @@ class Scraper:
         page_source = self.driver.page_source
         soup = BeautifulSoup(page_source, 'html.parser')
         name = soup.find('div', class_='page-header-headings').find('h1').text
-        print(f"{name}'s data is being scraped...")
+        print(f"{name}'s data is being scraped...", end=" ")
         profile_data = {
                 'name': name,
                 'profile_link': profile_link
@@ -191,7 +189,7 @@ class Scraper:
             
             # Print number of classmates
             no_of_classmates = int(self.driver.find_element(By.CSS_SELECTOR, 'p[data-region="participant-count"]').text.split()[0]) - 1
-            print(f"{str(index)}. There are {str(no_of_classmates)} classmates in class {course['name']}.", end=" ")
+            print(f"{str(index)}. {course['name']}: {str(no_of_classmates)} classmates.", end=" ")
 
             # Scrape!
             classmates = soup.select('table#participants a')
@@ -205,7 +203,7 @@ class Scraper:
                 
             # Update all_classmate_profile_links
             all_classmate_profile_links.update(classmate_profile_links)
-            print(f"{len(all_classmate_profile_links) - current_no_of_classmates} new classmate(s).")
+            print(f"{len(all_classmate_profile_links) - current_no_of_classmates} is new.")
             current_no_of_classmates = len(all_classmate_profile_links)
         
         # Return the set of profile links based on the update
@@ -232,7 +230,7 @@ class MongoDBCollection:
         try:
             if isinstance(data, dict):
                 self.collection.insert_one(data)
-                print(f"His/Her data was inserted.")
+                print("DONE")
             else:
                 raise ValueError("Data must be provided as a dictionary. Only 1 document can be inserted at a time.")
         except errors.PyMongoError as e:
@@ -279,7 +277,7 @@ def scrape_all_student_data(scraper):
             if delete in ['y', 'n']:
                 if delete == 'y':
                     result = collection.delete()
-                    print(f"Successfully deleted all data ({result.deleted_count} documents) in the collection.")
+                    print(f"Successfully deleted all data ({result.deleted_count} documents) in the collection.\n")
                     scrape_all_student_data(scraper)
                 else:
                     print("No data was deleted.")
@@ -292,11 +290,11 @@ def scrape_all_student_data(scraper):
             your_profile_link = your_student_data['profile_link']
             your_course_data = scraper.scrape_courses(your_profile_link)
             your_student_data['courses'] = your_course_data
-            print(f"\nSuccessfully scraped your student data. You attended in {len(your_student_data['courses'])} classes.\n")
             collection.insert(your_student_data)
+            print(f"Successfully scraped your student data. You attended in {len(your_student_data['courses']['valid']) + len(your_student_data['courses']['invalid'])} classes.\n")
             
             # Scrape your classmate profile links
-            all_classmate_profile_links = scraper.scrape_classmate_profile_links(your_profile_link, your_course_data)
+            all_classmate_profile_links = scraper.scrape_classmate_profile_links(your_profile_link, your_course_data['valid'])
             print(f"\nFound {len(all_classmate_profile_links)} unique classmates in {len(your_course_data)} classes")
             
             # Scrape your classmates' data
@@ -304,7 +302,7 @@ def scrape_all_student_data(scraper):
                 print(f"\n{str(index)}.", end=" ")
                 classmate_data = scraper.scrape_profile(is_mine=False, profile_link=link)
                 classmate_data['courses'] = scraper.scrape_courses(link)
-                print(f"His/Her data was scraped successfully. He/She attended in {len(classmate_data['courses'])} classes.")
+                print(f"DONE")
                 collection.insert(classmate_data)
 
 
@@ -353,7 +351,6 @@ def scrape_new_student_data(scraper):
             classmate_data = scraper.scrape_profile(is_mine=False, profile_link=link)
             classmate_data['courses'] = scraper.scrape_courses(link)
             new_classmate_data.append(classmate_data)
-            print(f"Successfully scraped {classmate_data['name']}'s data. He/She attended in {len(classmate_data['courses'])} classes.")
         collection.insert(new_classmate_data)
     
 
