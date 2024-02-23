@@ -6,7 +6,6 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from dotenv import load_dotenv
-from random import randint
 from pymongo import MongoClient, errors
 import time
 import os
@@ -56,11 +55,13 @@ class Scraper:
 
 
     def wait(self, seconds=0):
-        if time == 0:
-            WebDriverWait(self.driver, 60).until(lambda d: d.execute_script('return document.readyState') == 'complete')
-        else:
-            time.sleep(seconds)
-
+        try: 
+            if time == 0:
+                WebDriverWait(self.driver, 100).until(lambda d: d.execute_script('return document.readyState') == 'complete')
+            else:
+                time.sleep(seconds)
+        except Exception as e:
+            print(f"An error occurred while waiting: {e}")
 
     
     def scrape_courses(self, profile_link):
@@ -258,17 +259,7 @@ class MongoDBCollection:
 
 
 
-def scrape_all_student_data(scraper):
-    """
-    Scrapes student data for the logged-in user and their classmates.
-
-    Args:
-        scraper: An instance of the scraper class used for scraping student data.
-
-    Returns:
-        None
-    """
-    # Check data in the collection
+def scrape_classmate_links(scraper):
     with MongoDBCollection(os.environ['MONGODB_CONNECTION_STRING'], os.environ['MONGODB_DB_NAME'], os.environ['MONGODB_COLLECTION_NAME']) as collection:
         data_count = collection.count()
         if data_count != 0:
@@ -278,7 +269,7 @@ def scrape_all_student_data(scraper):
                 if delete == 'y':
                     result = collection.delete()
                     print(f"Successfully deleted all data ({result.deleted_count} documents) in the collection.\n")
-                    scrape_all_student_data(scraper)
+                    scrape_classmate_links()
                 else:
                     print("No data was deleted.")
             else:
@@ -291,19 +282,31 @@ def scrape_all_student_data(scraper):
             your_course_data = scraper.scrape_courses(your_profile_link)
             your_student_data['courses'] = your_course_data
             collection.insert(your_student_data)
-            print(f"Successfully scraped your student data. You attended in {len(your_student_data['courses']['valid']) + len(your_student_data['courses']['invalid'])} classes.\n")
+            print(f"Successfully scraped your student data. You attended in {len(your_student_data['courses']['valid']) + len(your_student_data['courses']['invalid'])} classes. {len(your_student_data['courses']['valid'])} of them are valid.\n")
             
             # Scrape your classmate profile links
             all_classmate_profile_links = scraper.scrape_classmate_profile_links(your_profile_link, your_course_data['valid'])
-            print(f"\nFound {len(all_classmate_profile_links)} unique classmates in {len(your_course_data)} classes")
-            
-            # Scrape your classmates' data
-            for index, link in enumerate(list(all_classmate_profile_links), start=1):
-                print(f"\n{str(index)}.", end=" ")
-                classmate_data = scraper.scrape_profile(is_mine=False, profile_link=link)
-                classmate_data['courses'] = scraper.scrape_courses(link)
-                print(f"DONE")
-                collection.insert(classmate_data)
+            print(f"\nFound {len(all_classmate_profile_links)} unique classmates in {len(your_course_data['courses']['valid'])} valid classes.\n")
+    
+    return all_classmate_profile_links
+
+
+def scrape_all_student_data(scraper, all_classmate_profile_links):
+    """
+    Scrapes student data for the logged-in user and their classmates.
+
+    Args:
+        scraper: An instance of the scraper class used for scraping student data.
+
+    Returns:
+        None
+    """
+    with MongoDBCollection(os.environ['MONGODB_CONNECTION_STRING'], os.environ['MONGODB_DB_NAME'], os.environ['MONGODB_COLLECTION_NAME']) as collection:
+        for index, link in enumerate(list(all_classmate_profile_links), start=1):
+            print(f"{str(index)}.", end=" ")
+            classmate_data = scraper.scrape_profile(is_mine=False, profile_link=link)
+            classmate_data['courses'] = scraper.scrape_courses(link)
+            collection.insert(classmate_data)
 
 
 
@@ -399,7 +402,8 @@ def main():
         with Scraper(url, username, password) as scraper:
             if scraper is not None:
                 if which_action == '1':
-                    scrape_all_student_data(scraper)
+                    all_classmate_profile_links = scrape_classmate_links(scraper)
+                    scrape_all_student_data(scraper, all_classmate_profile_links)
                 elif which_action == '2':
                     scrape_new_student_data(scraper)
                 elif which_action == '3':
