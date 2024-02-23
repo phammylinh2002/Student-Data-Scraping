@@ -260,7 +260,24 @@ class MongoDBCollection:
 
 
 
-def scrape_all_student_data(scraper):
+def scrape_your_student_data(scraper):
+    with MongoDBCollection(os.environ['MONGODB_CONNECTION_STRING'], os.environ['MONGODB_DB_NAME'], os.environ['MONGODB_COLLECTION_NAME']) as collection:
+        your_student_data = collection.find(amount='one', query={'email': os.environ['MLEARNING_USERNAME']}).count()
+        if your_student_data == 1:
+            print("Your student data is already in the collection. Please perform another action.")
+            return
+        else:
+            # Scrape your student data
+            your_student_data = scraper.scrape_profile()
+            your_profile_link = your_student_data['profile_link']
+            your_course_data = scraper.scrape_courses(your_profile_link)
+            your_student_data['courses'] = your_course_data
+            print(f"\nSuccessfully scraped your student data. You attended in {len(your_student_data['courses'])} classes.\n")
+            collection.insert(your_student_data)
+
+
+
+def scrape_your_classmate_data(scraper):
     """
     Scrapes student data for the logged-in user and their classmates.
 
@@ -274,27 +291,19 @@ def scrape_all_student_data(scraper):
     with MongoDBCollection(os.environ['MONGODB_CONNECTION_STRING'], os.environ['MONGODB_DB_NAME'], os.environ['MONGODB_COLLECTION_NAME']) as collection:
         data_count = collection.count()
         if data_count != 0:
-            print("There is already data in the collection. Please clear the data to perform this action.")
-            delete = input("Do you want to delete all data in the collection right now? (y/n): ").lower()
+            print("There is data in the collection. Please clear the data to perform this action.")
+            delete = input("Do you want to delete all data in the collection right now? (Y/n): ").lower()
             if delete in ['y', 'n']:
                 if delete == 'y':
                     result = collection.delete()
                     print(f"Successfully deleted all data ({result.deleted_count} documents) in the collection.")
-                    scrape_all_student_data(scraper)
+                    scrape_your_classmate_data(scraper)
                 else:
                     print("No data was deleted.")
             else:
                 print("Invalid input. Please try again.")
             return
-        else:
-            # Scrape your student data
-            your_student_data = scraper.scrape_profile()
-            your_profile_link = your_student_data['profile_link']
-            your_course_data = scraper.scrape_courses(your_profile_link)
-            your_student_data['courses'] = your_course_data
-            print(f"\nSuccessfully scraped your student data. You attended in {len(your_student_data['courses'])} classes.\n")
-            collection.insert(your_student_data)
-            
+        else:           
             # Scrape your classmate profile links
             all_classmate_profile_links = scraper.scrape_classmate_profile_links(your_profile_link, your_course_data)
             print(f"\nFound {len(all_classmate_profile_links)} unique classmates in {len(your_course_data)} classes")
@@ -394,19 +403,27 @@ def main():
     username = os.environ['MLEARNING_USERNAME']
     password = os.environ['MLEARNING_PASSWORD']
     
-    option1 = '\n[1] Scrape ALL student data'
-    option2 = '\n[2] Scrape NEW student data'
-    option3 = '\n[3] Update my classmate course data'
-    which_action = input(f"Which action do you want to perform?{option1}{option2}{option3}\nYour answer: ")
-    if which_action in ['1', '2', '3']:
+    option1 = '\n[1] Scrape your student data'
+    option2 = '\n[2] Scrape your classmate data'
+    option3 = '\n[3] Scrape new classmate data'
+    option4 = '\n[4] Update my classmate course data'
+    option5 = '\n[5] Delete all student data'
+    which_action = input(f"Which action do you want to perform?{option1}{option2}{option3}{option4}{option5}\nYour answer: ")
+    if which_action in ['1', '2', '3', '4', '5']:
         with Scraper(url, username, password) as scraper:
             if scraper is not None:
                 if which_action == '1':
-                    scrape_all_student_data(scraper)
+                    scrape_your_student_data(scraper)
                 elif which_action == '2':
-                    scrape_new_student_data(scraper)
+                    scrape_your_classmate_data(scraper)
                 elif which_action == '3':
+                    scrape_new_student_data(scraper)
+                elif which_action == '4':
                     update_my_classmate_courses(scraper)
+                elif which_action == '5':
+                    with MongoDBCollection(os.environ['MONGODB_CONNECTION_STRING'], os.environ['MONGODB_DB_NAME'], os.environ['MONGODB_COLLECTION_NAME']) as collection:
+                        result = collection.delete()
+                        print(f"Successfully deleted all data ({result.deleted_count} documents) in the collection.") 
             else:
                 return
     else:
