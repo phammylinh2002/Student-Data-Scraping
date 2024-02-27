@@ -109,7 +109,6 @@ class Scraper:
         page_source = self.driver.page_source
         soup = BeautifulSoup(page_source, 'html.parser')
         name = soup.find('div', class_='page-header-headings').find('h1').text
-        print(f"{name}'s data is being scraped...", end=" ")
         profile_data = {
                 'name': name,
                 'profile_link': profile_link
