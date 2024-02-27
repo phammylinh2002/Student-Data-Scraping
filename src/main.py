@@ -19,20 +19,7 @@ class Scraper:
         self.url = url
         self.username = username
         self.password = password
-     
-    def __enter__(self):
-        """
-        Logs in to the website using the provided username and password.
-
-        This method navigates to the login page, fills in the login form with the provided username and password,
-        and submits the form to log in to the website.
-
-        Args:
-            self (object): The instance of the class.
-
-        Returns:
-            None
-        """
+        # Navigate to MLearning login page
         self.driver.get(self.url)
         # Find and fill in the login form
         username_input = self.driver.find_element(By.NAME, 'username')
@@ -47,9 +34,6 @@ class Scraper:
         else:
             print("\nSuccessfully logged in.")    
             return self
-     
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.driver.quit()
 
     def wait(self, seconds=0):
         try: 
@@ -282,12 +266,13 @@ def scrape_your_student_data():
                     print("Invalid input. Please try again.")            
                     return 
         if your_data_in_db == 0 or is_updated == 'y':
-            with Scraper(url, username, password) as scraper:
-                your_student_data = scraper.scrape_profile()
-                your_profile_link = your_student_data['profile_link']
-                your_course_data = scraper.scrape_courses(your_profile_link)
-                your_student_data['courses'] = your_course_data
-                print(f"Successfully scraped your student data. You attended in {len(your_student_data['courses']['valid']) + len(your_student_data['courses']['invalid'])} classes. {len(your_student_data['courses']['valid'])} of them are valid.\n")
+            scraper = Scraper(url, username, password)
+            your_student_data = scraper.scrape_profile()
+            your_profile_link = your_student_data['profile_link']
+            your_course_data = scraper.scrape_courses(your_profile_link)
+            your_student_data['courses'] = your_course_data
+            scraper.driver.quit()
+            print(f"Successfully scraped your student data. You attended in {len(your_student_data['courses']['valid']) + len(your_student_data['courses']['invalid'])} classes. {len(your_student_data['courses']['valid'])} of them are valid.\n")
             if your_data_in_db is None:
                 collection.insert(your_student_data)
                 print("Your student data has been successfully inserted into the collection.")
@@ -313,13 +298,14 @@ def scrape_classmate_links():
                 print("Invalid input. Please try again.")
             return
         else:
-            with Scraper(url, username, password) as scraper:
-                your_student_data = collection.find(amount='one', query={'email': username})
-                your_profile_link = your_student_data['profile_link']
-                your_valid_course_data = your_student_data['courses']['valid']
-                print(f"\nScraping your classmates' profile links based on your {len(your_valid_course_data)} valid classes...")
-                all_classmate_profile_links = scraper.scrape_classmate_profile_links(your_profile_link, your_valid_course_data)
-                print(f"\nFound {len(all_classmate_profile_links)} unique classmates in {len(your_valid_course_data)} valid classes.\n")
+            scraper = Scraper(url, username, password)
+            your_student_data = collection.find(amount='one', query={'email': username})
+            your_profile_link = your_student_data['profile_link']
+            your_valid_course_data = your_student_data['courses']['valid']
+            print(f"\nScraping your classmates' profile links based on your {len(your_valid_course_data)} valid classes...")
+            all_classmate_profile_links = scraper.scrape_classmate_profile_links(your_profile_link, your_valid_course_data)
+            print(f"\nFound {len(all_classmate_profile_links)} unique classmates in {len(your_valid_course_data)} valid classes.\n")
+            scraper.driver.quit()
     return all_classmate_profile_links
 
 
@@ -362,6 +348,7 @@ def scrape_new_student_data():
         return 
     
     # Scrape and insert your new courses
+    scraper = Scraper(url, username, password)
     your_old_student_data = collection.find(amount='one', query={'email': os.environ['MLEARNING_USERNAME']})
     your_profile_link = your_old_student_data['profile_link']
     your_old_courses = [course['name'] for course in your_old_student_data['courses']]
@@ -389,6 +376,7 @@ def scrape_new_student_data():
             classmate_data['courses'] = scraper.scrape_courses(link)
             new_classmate_data.append(classmate_data)
         collection.insert(new_classmate_data)
+    scraper.driver.quit()
 
 
 def update_your_classmate_courses():
@@ -402,14 +390,15 @@ def update_your_classmate_courses():
         None
     """
     # Check data in the collection
-    collection = MongoDBCollection(os.environ['MONGODB_CONNECTION_STRING'], os.environ['MONGODB_DB_NAME'], os.environ['MONGODB_COLLECTION_NAME'])
+    collection = MongoDBCollection(connection_string, db_name, collection_name)
     data_count = collection.find().count()
     if data_count == 0:
         print("No data found in the collection. Please scrape all student data first.")
         return 
     
     
-    classmate_data = collection.find(amount='many', query={'email': {'$ne': os.environ['MLEARNING_USERNAME']}})
+    classmate_data = collection.find(amount='many', query={'email': {'$ne': username}})
+    scraper = Scraper(url, username, password)
     for classmate in classmate_data:
         profile_link = classmate['profile_link']
         classmate_course_data = scraper.scrape_courses(profile_link)
@@ -417,7 +406,7 @@ def update_your_classmate_courses():
         updated_no_classes = len(classmate_course_data)
         print(f"{classmate['name']} has {updated_no_classes - current_no_classes} new class(es). Total class(es): {updated_no_classes}.")
         collection.update({classmate['_id']}, {'courses': classmate_course_data})
-        
+    scraper.driver.quit()
     
 
 def main():
@@ -442,24 +431,27 @@ def main():
         elif which_action == '2':
             all_classmate_profile_links = list(scrape_classmate_links())
             # Split the links into equal-sized chunks for each scraper
-            links_per_scraper = len(all_classmate_profile_links) // 2
-            links_chunks = [all_classmate_profile_links[i*links_per_scraper:(i+1)*links_per_scraper] for i in range(2)]
-            if len(all_classmate_profile_links) % 2 != 0:
-                links_chunks[-1].extend(all_classmate_profile_links[2*links_per_scraper:])
+            no_of_scrapers = 5
+            links_per_scraper = len(all_classmate_profile_links) // no_of_scrapers
+            links_chunks = [all_classmate_profile_links[i*links_per_scraper:(i+1)*links_per_scraper] for i in range(no_of_scrapers)]
+            if len(all_classmate_profile_links) % no_of_scrapers != 0:
+                links_chunks[-1].extend(all_classmate_profile_links[no_of_scrapers*links_per_scraper:])
             # Scrape the data
-            with Scraper(url, username, password) as scraper1, Scraper(url, username, password) as scraper2:
-                scrapers = [scraper1, scraper2]
-                with ThreadPoolExecutor(max_workers=2) as executor:
-                    futures = [executor.submit(scrape_classmate_data, scraper, links_chunk) for scraper, links_chunk in zip(scrapers, links_chunks)]
-                    for future in as_completed(futures):
-                        try:
-                            future.result()  # This will raise an exception if the future raised an exception
-                        except Exception as e:
-                            print(f"An error occurred: {e}")
-        elif which_action == '2':
-            scrape_new_student_data(scraper)
+            with ThreadPoolExecutor() as executor:
+                scrapers = list(executor.map(lambda _: Scraper(url, username, password), range(no_of_scrapers)))
+            with ThreadPoolExecutor(max_workers=no_of_scrapers) as executor:
+                futures = [executor.submit(scrape_classmate_data, scraper, links_chunk) for scraper, links_chunk in zip(scrapers, links_chunks)]
+                for future in as_completed(futures):
+                    try:
+                        future.result()
+                    except Exception as e:
+                        print(f"An error occurred: {e}")
+            for scraper in scrapers:
+                scraper.driver.quit()
         elif which_action == '3':
-            update_your_classmate_courses(scraper)
+            scrape_new_student_data()
+        elif which_action == '4':
+            update_your_classmate_courses()
     else:
         print("Invalid input. Please try again.")
     
