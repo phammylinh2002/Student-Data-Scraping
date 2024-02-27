@@ -344,7 +344,7 @@ def scrape_classmate_data(scraper, links):
                 print(f"{e}")
 
 
-def scrape_new_student_data(scraper):
+def scrape_new_student_data():
     """
     Scrapes and inserts new student data into the collection.
 
@@ -391,7 +391,7 @@ def scrape_new_student_data(scraper):
         collection.insert(new_classmate_data)
 
 
-def update_your_classmate_courses(scraper):
+def update_your_classmate_courses():
     """
     Updates the courses of your classmates.
 
@@ -457,11 +457,9 @@ def main():
                         except Exception as e:
                             print(f"An error occurred: {e}")
         elif which_action == '2':
-            with Scraper(url, username, password) as scraper:
-                scrape_new_student_data(scraper)
+            scrape_new_student_data(scraper)
         elif which_action == '3':
-            with Scraper(url, username, password) as scraper:
-                update_your_classmate_courses(scraper)
+            update_your_classmate_courses(scraper)
     else:
         print("Invalid input. Please try again.")
     
