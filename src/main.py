@@ -19,6 +19,8 @@ class Scraper:
         self.url = url
         self.username = username
         self.password = password
+    
+    def login(self):
         # Navigate to MLearning login page
         self.driver.get(self.url)
         # Find and fill in the login form
@@ -34,7 +36,7 @@ class Scraper:
         else:
             print("\nSuccessfully logged in.")    
             return self
-
+       
     def wait(self, seconds=0):
         try: 
             if time == 0:
@@ -266,7 +268,7 @@ def scrape_your_student_data():
                     print("Invalid input. Please try again.")            
                     return 
         if your_data_in_db == 0 or is_updated == 'y':
-            scraper = Scraper(url, username, password)
+            scraper = Scraper(url, username, password).login()
             your_student_data = scraper.scrape_profile()
             your_profile_link = your_student_data['profile_link']
             your_course_data = scraper.scrape_courses(your_profile_link)
@@ -298,7 +300,7 @@ def scrape_classmate_links():
                 print("Invalid input. Please try again.")
             return
         else:
-            scraper = Scraper(url, username, password)
+            scraper = Scraper(url, username, password).login()
             your_student_data = collection.find(amount='one', query={'email': username})
             your_profile_link = your_student_data['profile_link']
             your_valid_course_data = your_student_data['courses']['valid']
@@ -348,7 +350,7 @@ def scrape_new_student_data():
         return 
     
     # Scrape and insert your new courses
-    scraper = Scraper(url, username, password)
+    scraper = Scraper(url, username, password).login()
     your_old_student_data = collection.find(amount='one', query={'email': os.environ['MLEARNING_USERNAME']})
     your_profile_link = your_old_student_data['profile_link']
     your_old_courses = [course['name'] for course in your_old_student_data['courses']]
@@ -398,7 +400,7 @@ def update_your_classmate_courses():
     
     
     classmate_data = collection.find(amount='many', query={'email': {'$ne': username}})
-    scraper = Scraper(url, username, password)
+    scraper = Scraper(url, username, password).login()
     for classmate in classmate_data:
         profile_link = classmate['profile_link']
         classmate_course_data = scraper.scrape_courses(profile_link)
@@ -438,7 +440,7 @@ def main():
                 links_chunks[-1].extend(all_classmate_profile_links[no_of_scrapers*links_per_scraper:])
             # Scrape the data
             with ThreadPoolExecutor() as executor:
-                scrapers = list(executor.map(lambda _: Scraper(url, username, password), range(no_of_scrapers)))
+                scrapers = list(executor.map(lambda _: Scraper(url, username, password).login(), range(no_of_scrapers)))
             with ThreadPoolExecutor(max_workers=no_of_scrapers) as executor:
                 futures = [executor.submit(scrape_classmate_data, scraper, links_chunk) for scraper, links_chunk in zip(scrapers, links_chunks)]
                 for future in as_completed(futures):
