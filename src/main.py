@@ -5,6 +5,7 @@ from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dotenv import load_dotenv
 from pymongo import MongoClient, errors
 import time
@@ -12,15 +13,13 @@ import os
 import re
     
 
-
 class Scraper:
     def __init__(self, url, username, password):
         self.driver = webdriver.Chrome()
         self.url = url
         self.username = username
         self.password = password
-    
-    
+     
     def __enter__(self):
         """
         Logs in to the website using the provided username and password.
@@ -48,11 +47,9 @@ class Scraper:
         else:
             print("\nSuccessfully logged in.")    
             return self
-    
-    
+     
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.driver.quit()
-
 
     def wait(self, seconds=0):
         try: 
@@ -63,7 +60,6 @@ class Scraper:
         except Exception as e:
             print(f"An error occurred while waiting: {e}")
 
-    
     def scrape_courses(self, profile_link):
         """
         Scrapes the courses from the given profile link.
@@ -98,7 +94,6 @@ class Scraper:
                 all_course_data['invalid'].append(course_data)
                 continue
         return all_course_data
-    
     
     def scrape_profile(self, is_mine=True, profile_link=None):
         """
@@ -145,7 +140,6 @@ class Scraper:
             print(f"An error occurred while scraping {name}'s data: {e}. Profile link: {profile_link}.")
 
         return profile_data
-    
     
     def scrape_classmate_profile_links(self, your_profile_link, your_course_data, is_update=False, old_classmate_profile_links=set()):
         """
@@ -213,8 +207,6 @@ class Scraper:
         else:
             return all_classmate_profile_links
 
-
-
 class MongoDBCollection:
     def __init__(self, connection_string, db_name, collection_name):
         self.client = MongoClient(connection_string)
@@ -231,7 +223,6 @@ class MongoDBCollection:
         try:
             if isinstance(data, dict):
                 self.collection.insert_one(data)
-                print("DONE")
             else:
                 raise ValueError("Data must be provided as a dictionary. Only 1 document can be inserted at a time.")
         except errors.PyMongoError as e:
@@ -254,20 +245,66 @@ class MongoDBCollection:
         elif amount == 'many':
             return self.collection.find(query)
 
-    def count(self):
-        return self.collection.count_documents({})
+    def count(self, filter={}):
+        if filter:
+            return self.collection.count_documents(filter)
+        else:
+            return self.collection.count_documents({})
+
+    def replace(self, filter, data):
+        return self.collection.replace_one(filter, data)
 
 
+def scrape_your_student_data():
+    with MongoDBCollection(connection_string, db_name, collection_name) as collection:
+        your_data_in_db = collection.count(filter={'email': username})
+        if your_data_in_db != 0:
+            if your_data_in_db > 1:
+                delete_one = input("There are duplicates of your student data in the collection. Do you want to delete one? (y/n):").lower()
+                if delete_one in ['y', 'n']:
+                    if delete_one == 'y':
+                        collection.delete(amount='one', query={'email': username})
+                        print("Successfully deleted one duplicate of your student data in the collection.")
+                        scrape_your_student_data()
+                    else:
+                        print("No data was deleted.")
+                else:
+                    print("Invalid input. Please try again.")
+                    return
+            if your_data_in_db == 1:
+                is_updated = input("Your data is already in the collection. It will be updated. Do you want to continue? (y/n): ").lower()
+                if is_updated in ['y', 'n']:
+                    if is_updated == 'y':
+                        pass
+                    else:
+                        print("No data was updated.")
+                else:
+                    print("Invalid input. Please try again.")            
+                    return 
+        if your_data_in_db == 0 or is_updated == 'y':
+            with Scraper(url, username, password) as scraper:
+                your_student_data = scraper.scrape_profile()
+                your_profile_link = your_student_data['profile_link']
+                your_course_data = scraper.scrape_courses(your_profile_link)
+                your_student_data['courses'] = your_course_data
+                print(f"Successfully scraped your student data. You attended in {len(your_student_data['courses']['valid']) + len(your_student_data['courses']['invalid'])} classes. {len(your_student_data['courses']['valid'])} of them are valid.\n")
+            if your_data_in_db is None:
+                collection.insert(your_student_data)
+                print("Your student data has been successfully inserted into the collection.")
+            else:
+                collection.replace({'email': username}, your_student_data)
+                print("Your student data has been successfully updated in the collection.")
 
-def scrape_classmate_links(scraper):
-    with MongoDBCollection(os.environ['MONGODB_CONNECTION_STRING'], os.environ['MONGODB_DB_NAME'], os.environ['MONGODB_COLLECTION_NAME']) as collection:
+
+def scrape_classmate_links():
+    with MongoDBCollection(connection_string, db_name, collection_name) as collection:
         data_count = collection.count()
-        if data_count != 0:
-            print("There is already data in the collection. Please clear the data to perform this action.")
-            delete = input("Do you want to delete all data in the collection right now? (y/n): ").lower()
+        if data_count > 1:
+            print("There is already classmate data in the collection. Please clear the data to perform this action.")
+            delete = input("Do you want to delete all data (except your student data) in the collection right now? (y/n): ").lower()
             if delete in ['y', 'n']:
                 if delete == 'y':
-                    result = collection.delete()
+                    result = collection.delete(amount='some', query={'email': {'$ne': username}})
                     print(f"Successfully deleted all data ({result.deleted_count} documents) in the collection.\n")
                     scrape_classmate_links()
                 else:
@@ -276,22 +313,17 @@ def scrape_classmate_links(scraper):
                 print("Invalid input. Please try again.")
             return
         else:
-            # Scrape your student data
-            your_student_data = scraper.scrape_profile()
-            your_profile_link = your_student_data['profile_link']
-            your_course_data = scraper.scrape_courses(your_profile_link)
-            your_student_data['courses'] = your_course_data
-            collection.insert(your_student_data)
-            print(f"Successfully scraped your student data. You attended in {len(your_student_data['courses']['valid']) + len(your_student_data['courses']['invalid'])} classes. {len(your_student_data['courses']['valid'])} of them are valid.\n")
-            
-            # Scrape your classmate profile links
-            all_classmate_profile_links = scraper.scrape_classmate_profile_links(your_profile_link, your_course_data['valid'])
-            print(f"\nFound {len(all_classmate_profile_links)} unique classmates in {len(your_course_data['courses']['valid'])} valid classes.\n")
-    
+            with Scraper(url, username, password) as scraper:
+                your_student_data = collection.find(amount='one', query={'email': username})
+                your_profile_link = your_student_data['profile_link']
+                your_valid_course_data = your_student_data['courses']['valid']
+                print(f"\nScraping your classmates' profile links based on your {len(your_valid_course_data)} valid classes...")
+                all_classmate_profile_links = scraper.scrape_classmate_profile_links(your_profile_link, your_valid_course_data)
+                print(f"\nFound {len(all_classmate_profile_links)} unique classmates in {len(your_valid_course_data)} valid classes.\n")
     return all_classmate_profile_links
 
 
-def scrape_all_student_data(scraper, all_classmate_profile_links):
+def scrape_classmate_data(scraper, links):
     """
     Scrapes student data for the logged-in user and their classmates.
 
@@ -301,13 +333,15 @@ def scrape_all_student_data(scraper, all_classmate_profile_links):
     Returns:
         None
     """
-    with MongoDBCollection(os.environ['MONGODB_CONNECTION_STRING'], os.environ['MONGODB_DB_NAME'], os.environ['MONGODB_COLLECTION_NAME']) as collection:
-        for index, link in enumerate(list(all_classmate_profile_links), start=1):
-            print(f"{str(index)}.", end=" ")
-            classmate_data = scraper.scrape_profile(is_mine=False, profile_link=link)
-            classmate_data['courses'] = scraper.scrape_courses(link)
-            collection.insert(classmate_data)
-
+    with MongoDBCollection(connection_string, db_name, collection_name) as collection:
+        for link in links:
+            try:
+                classmate_data = scraper.scrape_profile(is_mine=False, profile_link=link)
+                classmate_data['courses'] = scraper.scrape_courses(link)
+                collection.insert(classmate_data)
+                print(f"{classmate_data['name']}'s data was scraped.")
+            except Exception as e:
+                print(f"{e}")
 
 
 def scrape_new_student_data(scraper):
@@ -355,10 +389,9 @@ def scrape_new_student_data(scraper):
             classmate_data['courses'] = scraper.scrape_courses(link)
             new_classmate_data.append(classmate_data)
         collection.insert(new_classmate_data)
-    
 
 
-def update_my_classmate_courses(scraper):
+def update_your_classmate_courses(scraper):
     """
     Updates the courses of your classmates.
 
@@ -390,26 +423,45 @@ def update_my_classmate_courses(scraper):
 def main():
     start_time = time.time()
     load_dotenv()
+    global url, username, password, connection_string, db_name, collection_name
     url = 'https://mlearning.hoasen.edu.vn'
     username = os.environ['MLEARNING_USERNAME']
     password = os.environ['MLEARNING_PASSWORD']
+    connection_string = os.environ['MONGODB_CONNECTION_STRING']
+    db_name = os.environ['MONGODB_DB_NAME']
+    collection_name = os.environ['MONGODB_COLLECTION_NAME']
     
-    option1 = '\n[1] Scrape ALL student data'
-    option2 = '\n[2] Scrape NEW student data'
-    option3 = '\n[3] Update my classmate course data'
-    which_action = input(f"Which action do you want to perform?{option1}{option2}{option3}\nYour answer: ")
-    if which_action in ['1', '2', '3']:
-        with Scraper(url, username, password) as scraper:
-            if scraper is not None:
-                if which_action == '1':
-                    all_classmate_profile_links = scrape_classmate_links(scraper)
-                    scrape_all_student_data(scraper, all_classmate_profile_links)
-                elif which_action == '2':
-                    scrape_new_student_data(scraper)
-                elif which_action == '3':
-                    update_my_classmate_courses(scraper)
-            else:
-                return
+    option1 = '\n[1] Scrape your data'
+    option2 = '\n[2] Scrape ALL classmate data'
+    option3 = '\n[3] Scrape NEW classmate data'
+    option4 = '\n[4] Update your classmate course data'
+    which_action = input(f"Which action do you want to perform?{option1}{option2}{option3}{option4}\nYour answer: ")
+    if which_action in ['1', '2', '3', '4']:
+        if which_action == '1':
+            scrape_your_student_data()
+        elif which_action == '2':
+            all_classmate_profile_links = list(scrape_classmate_links())
+            # Split the links into equal-sized chunks for each scraper
+            links_per_scraper = len(all_classmate_profile_links) // 2
+            links_chunks = [all_classmate_profile_links[i*links_per_scraper:(i+1)*links_per_scraper] for i in range(2)]
+            if len(all_classmate_profile_links) % 2 != 0:
+                links_chunks[-1].extend(all_classmate_profile_links[2*links_per_scraper:])
+            # Scrape the data
+            with Scraper(url, username, password) as scraper1, Scraper(url, username, password) as scraper2:
+                scrapers = [scraper1, scraper2]
+                with ThreadPoolExecutor(max_workers=2) as executor:
+                    futures = [executor.submit(scrape_classmate_data, scraper, links_chunk) for scraper, links_chunk in zip(scrapers, links_chunks)]
+                    for future in as_completed(futures):
+                        try:
+                            future.result()  # This will raise an exception if the future raised an exception
+                        except Exception as e:
+                            print(f"An error occurred: {e}")
+        elif which_action == '2':
+            with Scraper(url, username, password) as scraper:
+                scrape_new_student_data(scraper)
+        elif which_action == '3':
+            with Scraper(url, username, password) as scraper:
+                update_your_classmate_courses(scraper)
     else:
         print("Invalid input. Please try again.")
     
