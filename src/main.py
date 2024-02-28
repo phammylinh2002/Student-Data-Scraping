@@ -432,15 +432,14 @@ def main():
         elif which_action == '2':
             all_classmate_profile_links = list(scrape_classmate_links())
             # Split the links into equal-sized chunks for each scraper
-            no_of_scrapers = 5
+            no_of_scrapers = 10
             links_per_scraper = len(all_classmate_profile_links) // no_of_scrapers
             links_chunks = [all_classmate_profile_links[i*links_per_scraper:(i+1)*links_per_scraper] for i in range(no_of_scrapers)]
             if len(all_classmate_profile_links) % no_of_scrapers != 0:
                 links_chunks[-1].extend(all_classmate_profile_links[no_of_scrapers*links_per_scraper:])
             # Scrape the data
-            with ThreadPoolExecutor() as executor:
-                scrapers = list(executor.map(lambda _: Scraper(url, username, password).login(), range(no_of_scrapers)))
             with ThreadPoolExecutor(max_workers=no_of_scrapers) as executor:
+                scrapers = list(executor.map(lambda _: Scraper(url, username, password).login(), range(no_of_scrapers)))
                 futures = [executor.submit(scrape_classmate_data, scraper, links_chunk) for scraper, links_chunk in zip(scrapers, links_chunks)]
                 for future in as_completed(futures):
                     try:
@@ -459,7 +458,6 @@ def main():
     end_time = time.time()
     runtime = end_time - start_time
     print(f"\nRuntime of the program is {round(runtime//60)}m{round(runtime%60)}s")
-
 
 
 if __name__ == "__main__":
