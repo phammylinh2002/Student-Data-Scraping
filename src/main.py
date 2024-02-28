@@ -395,6 +395,16 @@ def scrape_classmate_data(scraper, links):
 
 
 def scrape_missed_classmate_data():
+    """
+    Scrapes the missed data of classmates who have not been previously scraped.
+
+    This function reads the profile links of classmates from a file and checks if any of them have not been scraped yet.
+    If there are missed classmates, it logs the number of missed classmates found and proceeds to scrape their data.
+    The scraped data is then inserted into a MongoDB collection.
+
+    Returns:
+        None
+    """
     with open('./src/classmates_profile_links.txt', 'r') as f:
         if not f.read().strip():
             all_classmates_profile_links = scrape_classmate_links()
