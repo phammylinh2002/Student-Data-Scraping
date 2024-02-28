@@ -284,34 +284,19 @@ def scrape_your_student_data():
 
 def scrape_classmate_links():
     with MongoDBCollection(connection_string, db_name, collection_name) as collection:
-        data_count = collection.count()
-        if data_count > 1:
-            print("There is already classmate data in the collection. Please clear the data to perform this action.")
-            delete = input("Do you want to delete all data (except your student data) in the collection right now? (y/n): ").lower()
-            if delete in ['y', 'n']:
-                if delete == 'y':
-                    result = collection.delete(amount='some', query={'email': {'$ne': username}})
-                    print(f"Successfully deleted all data ({result.deleted_count} documents) in the collection.\n")
-                    scrape_classmate_links()
-                else:
-                    print("No data was deleted.")
-            else:
-                print("Invalid input. Please try again.")
-            return
-        else:
-            scraper = Scraper(url, username, password).login()
-            your_student_data = collection.find(amount='one', query={'email': username})
-            your_profile_link = your_student_data['profile_link']
-            your_valid_course_data = your_student_data['courses']['valid']
-            print(f"\nScraping your classmates' profile links based on your {len(your_valid_course_data)} valid classes...")
-            all_classmate_profile_links = scraper.scrape_classmate_profile_links(your_profile_link, your_valid_course_data)
-            print(f"\nFound {len(all_classmate_profile_links)} unique classmates in {len(your_valid_course_data)} valid classes.\n")
-            scraper.driver.quit()
-            with open('classmates_profile_links', 'w') as file:
-                file.write('')
-            with open('classmates_profile_links', 'a') as file:
-                for link in all_classmate_profile_links:
-                    file.write(link + '\n')
+        your_student_data = collection.find(amount='one', query={'email': username})
+    scraper = Scraper(url, username, password).login()
+    your_profile_link = your_student_data['profile_link']
+    your_valid_course_data = your_student_data['courses']['valid']
+    print(f"\nScraping your classmates' profile links based on your {len(your_valid_course_data)} valid classes...")
+    all_classmate_profile_links = scraper.scrape_classmate_profile_links(your_profile_link, your_valid_course_data)
+    print(f"\nFound {len(all_classmate_profile_links)} unique classmates in {len(your_valid_course_data)} valid classes.\n")
+    scraper.driver.quit()
+    with open('classmates_profile_links', 'w') as file:
+        file.write('')
+    with open('classmates_profile_links', 'a') as file:
+        for link in all_classmate_profile_links:
+            file.write(link + '\n')
     return all_classmate_profile_links
 
 
