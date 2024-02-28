@@ -292,9 +292,9 @@ def scrape_classmate_links():
     all_classmate_profile_links = scraper.scrape_classmate_profile_links(your_profile_link, your_valid_course_data)
     print(f"\nFound {len(all_classmate_profile_links)} unique classmates in {len(your_valid_course_data)} valid classes.\n")
     scraper.driver.quit()
-    with open('classmates_profile_links', 'w') as file:
+    with open('/src/classmates_profile_links.txt', 'w') as file:
         file.write('')
-    with open('classmates_profile_links', 'a') as file:
+    with open('/src/classmates_profile_links.txt', 'a') as file:
         for link in all_classmate_profile_links:
             file.write(link + '\n')
     return all_classmate_profile_links
@@ -326,11 +326,11 @@ def scrape_classmate_data(scraper, links):
 
 
 def scrape_missed_classmate_data():
-    with open('classmates_profile_links', 'r') as f:
+    with open('/src/classmates_profile_links.txt', 'r') as f:
         if not f.read().strip():
             all_classmates_profile_links = scrape_classmate_links()
         else:
-            all_classmates_profile_links = [line.strip() for line in open('classmates_profile_links', 'r').readlines()]
+            all_classmates_profile_links = [line.strip() for line in open('/src/classmates_profile_links.txt', 'r').readlines()]
     with MongoDBCollection(connection_string, db_name, collection_name) as collection:
         scraped_classmates = [link['profile_link'] for link in collection.find(amount='many', query={'email': {'$ne': username}}, project={'profile_link':1, '_id':0})]
         missed_classmates = list(set(all_classmates_profile_links).difference(scraped_classmates))
