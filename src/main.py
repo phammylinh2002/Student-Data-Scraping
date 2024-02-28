@@ -344,6 +344,13 @@ def scrape_your_student_data():
 
 
 def scrape_classmate_links():
+    """
+    Scrapes the profile links of classmates based on the user's valid course data.
+    
+    Returns:
+    - all_classmate_profile_links (list): A list of profile links of classmates.
+    """
+    
     with MongoDBCollection(connection_string, db_name, collection_name) as collection:
         your_student_data = collection.find(amount='one', query={'email': username})
     scraper = Scraper(url, username, password).login()
