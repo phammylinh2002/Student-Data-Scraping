@@ -77,39 +77,39 @@ class Scraper:
             print(f"An error occurred while waiting: {e}")
 
     def scrape_courses(self, profile_link):
-        """
-        Scrapes the courses from the given profile link.
+            """
+            Scrapes the courses from the given profile link.
 
-        Args:
-            profile_link (str): The link to the profile page.
+            Args:
+                profile_link (str): The link to the profile page.
 
-        Returns:
-            list: A list of dictionaries containing the course data, including the course link and name.
-        """
-        
-        # Get all courses page soup
-        show_all_courses_link = profile_link + '&showallcourses=1'
-        self.driver.get(show_all_courses_link)
-        self.wait()
-        page_source = self.driver.page_source
-        soup = BeautifulSoup(page_source, 'html.parser')
-        
-        # Scraping the soup
-        courses = soup.find('dt', string='Course profiles').find_next_sibling('dd').find_all('a')
-        all_course_data = {'valid':[], 'invalid':[]}
-        for course in courses:
-            course_link = self.url + '/course/view.php?id=' + re.search(r'course=(\d+)', course['href']).group(1)
-            course_name_match = re.search(r"(.+_\d{4}_\d{4})", course.text)
-            if course_name_match is not None:
-                course_name = course_name_match.group(1).strip()
-                course_data = {'link': course_link, 'name': course_name}
-                all_course_data['valid'].append(course_data)
-            else:
-                course_name = course.text.strip()
-                course_data = {'link': course_link, 'name': course_name}
-                all_course_data['invalid'].append(course_data)
-                continue
-        return all_course_data
+            Returns:
+                list: A list of dictionaries containing the course data, including the course link and name.
+            """
+            
+            # Get all courses page soup
+            show_all_courses_link = profile_link + '&showallcourses=1'
+            self.driver.get(show_all_courses_link)
+            self.wait()
+            page_source = self.driver.page_source
+            soup = BeautifulSoup(page_source, 'html.parser')
+            
+            # Scraping the soup
+            courses = soup.find('dt', string='Course profiles').find_next_sibling('dd').find_all('a')
+            all_course_data = {'valid':[], 'invalid':[]}
+            for course in courses:
+                course_link = self.url + '/course/view.php?id=' + re.search(r'course=(\d+)', course['href']).group(1)
+                course_name_match = re.search(r"(.+_\d{4}_\d{4})", course.text)
+                if course_name_match is not None:
+                    course_name = course_name_match.group(1).strip()
+                    course_data = {'link': course_link, 'name': course_name}
+                    all_course_data['valid'].append(course_data)
+                else:
+                    course_name = course.text.strip()
+                    course_data = {'link': course_link, 'name': course_name}
+                    all_course_data['invalid'].append(course_data)
+                    continue
+            return all_course_data
     
     def scrape_profile(self, is_mine=True, profile_link=None):
         """
@@ -158,7 +158,7 @@ class Scraper:
     
     def scrape_classmate_profile_links(self, your_profile_link, your_course_data, is_update=False, old_classmate_profile_links=set()):
         """
-        Scrapes the profile links of classmates based on the provided course data.
+        Scrapes the profile links of classmates based on the provided course data (links to the courses).
 
         Args:
             your_profile_link (str): The link to your own profile.
@@ -167,7 +167,7 @@ class Scraper:
             old_classmate_profile_links (set, optional): The set of old classmate profile links. Required when is_update is False. Defaults to an empty set.
 
         Returns:
-            set: The set of profile links based on the update.
+            list: The list of unique profile links.
 
         Raises:
             TypeError: If your_course_data is not a list.
