@@ -14,13 +14,37 @@ import re
     
 
 class Scraper:
+    """
+    A class for scraping student data from an online learning platform.
+    
+    Attributes:
+        url (str): The URL of the online learning platform.
+        username (str): The username for logging into the platform.
+        password (str): The password for logging into the platform.
+        driver: The web driver for interacting with the platform.
+    """
+    
     def __init__(self, url, username, password):
+        """
+        Initializes a Scraper object.
+        
+        Args:
+            url (str): The URL of the online learning platform.
+            username (str): The username for logging into the platform.
+            password (str): The password for logging into the platform.
+        """
         self.driver = webdriver.Chrome()
         self.url = url
         self.username = username
         self.password = password
     
     def login(self):
+        """
+        Logs into the online learning platform.
+        
+        Returns:
+            Scraper: The Scraper object.
+        """
         # Navigate to MLearning login page
         self.driver.get(self.url)
         # Find and fill in the login form
@@ -38,6 +62,12 @@ class Scraper:
             return self
        
     def wait(self, seconds=0):
+        """
+        Waits for the page to load.
+        
+        Args:
+            seconds (int, optional): The number of seconds to wait. Defaults to 0.
+        """
         try: 
             if time == 0:
                 WebDriverWait(self.driver, 100).until(lambda d: d.execute_script('return document.readyState') == 'complete')
