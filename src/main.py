@@ -34,7 +34,7 @@ class Scraper:
         if self.driver.current_url == self.url:
             print("\nLogin failed. Please check your username and password.")
         else:
-            print("\nSuccessfully logged in.")    
+            #print("\nSuccessfully logged in.")    
             return self
        
     def wait(self, seconds=0):
@@ -292,9 +292,9 @@ def scrape_classmate_links():
     all_classmate_profile_links = scraper.scrape_classmate_profile_links(your_profile_link, your_valid_course_data)
     print(f"\nFound {len(all_classmate_profile_links)} unique classmates in {len(your_valid_course_data)} valid classes.\n")
     scraper.driver.quit()
-    with open('/src/classmates_profile_links.txt', 'w') as file:
+    with open('./src/classmates_profile_links.txt', 'w') as file:
         file.write('')
-    with open('/src/classmates_profile_links.txt', 'a') as file:
+    with open('./src/classmates_profile_links.txt', 'a') as file:
         for link in all_classmate_profile_links:
             file.write(link + '\n')
     return all_classmate_profile_links
@@ -326,22 +326,23 @@ def scrape_classmate_data(scraper, links):
 
 
 def scrape_missed_classmate_data():
-    with open('/src/classmates_profile_links.txt', 'r') as f:
+    with open('./src/classmates_profile_links.txt', 'r') as f:
         if not f.read().strip():
             all_classmates_profile_links = scrape_classmate_links()
         else:
-            all_classmates_profile_links = [line.strip() for line in open('/src/classmates_profile_links.txt', 'r').readlines()]
+            all_classmates_profile_links = [line.strip() for line in open('./src/classmates_profile_links.txt', 'r').readlines()]
     with MongoDBCollection(connection_string, db_name, collection_name) as collection:
         scraped_classmates = [link['profile_link'] for link in collection.find(amount='many', query={'email': {'$ne': username}}, project={'profile_link':1, '_id':0})]
         missed_classmates = list(set(all_classmates_profile_links).difference(scraped_classmates))
         if len(missed_classmates) > 0:
-            print(f"\nFound {len(missed_classmates)} missed classmates.")
+            print(f"\nFound {len(missed_classmates)} missed classmates")
             scraper = Scraper(url, username, password).login()
             for link in missed_classmates:
                 classmate_data = scraper.scrape_profile(is_mine=False, profile_link=link)
                 classmate_data['courses'] = scraper.scrape_courses(link)
                 collection.insert(classmate_data)
             scraper.driver.quit()
+            print(f"Successfully scraped the missed data of {len(missed_classmates)} classmates")
         else:
             print("\nNo missed classmates found.")
 
@@ -437,7 +438,7 @@ def main():
     collection_name = os.environ['MONGODB_COLLECTION_NAME']
     
     option1 = '\n[1] Scrape your data'
-    option2 = '\n[2] Scrape classmates\' profile links'
+    option2 = '\n[2] Scrape missed classmate data'
     option3 = '\n[3] Scrape ALL classmate data'
     option4 = '\n[4] Scrape NEW classmate data'
     option5 = '\n[5] Update your classmate course data'
@@ -452,7 +453,11 @@ def main():
             with open('scraped_classmates.txt', 'w') as file:
                 file.write('')
             # Get all classmate profile links
-            all_classmate_profile_links = scrape_classmate_links()
+            with open('./src/classmates_profile_links.txt', 'r') as f:
+                if not f.read().strip():
+                    all_classmate_profile_links = scrape_classmate_links()
+                else:
+                    all_classmate_profile_links = [line.strip() for line in open('./src/classmates_profile_links.txt', 'r').readlines()]
             # Split the links into equal-sized chunks for each scraper
             no_of_scrapers = 10
             links_per_scraper = len(all_classmate_profile_links) // no_of_scrapers
