@@ -370,10 +370,11 @@ def scrape_classmate_links():
 
 def scrape_classmate_data(scraper, links):
     """
-    Scrapes student data for the logged-in user and their classmates.
+    Scrapes classmate data using a given scraper object and a list of links.
 
     Args:
-        scraper: An instance of the scraper class used for scraping student data.
+        scraper: The scraper object used to scrape classmate data.
+        links: A list of links to the classmate profiles.
 
     Returns:
         None
