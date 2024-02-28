@@ -222,7 +222,25 @@ class Scraper:
         else:
             return list(all_classmate_profile_links)
 
+
 class MongoDBCollection:
+    """
+    A class representing a MongoDB collection.
+
+    Parameters:
+    - connection_string (str): The connection string for the MongoDB server.
+    - db_name (str): The name of the database.
+    - collection_name (str): The name of the collection.
+
+    Methods:
+    - insert(data): Inserts a document into the collection.
+    - update(query, new_data): Updates a document in the collection.
+    - delete(amount='all', query={}): Deletes one or multiple documents from the collection.
+    - find(amount='one', query={}, project={}): Finds one or multiple documents in the collection.
+    - count(filter={}): Counts the number of documents in the collection.
+    - replace(filter, data): Replaces a document in the collection.
+    """
+
     def __init__(self, connection_string, db_name, collection_name):
         self.client = MongoClient(connection_string)
         self.db = self.client[db_name]
@@ -271,6 +289,7 @@ class MongoDBCollection:
 
 
 def scrape_your_student_data():
+    
     with MongoDBCollection(connection_string, db_name, collection_name) as collection:
         your_data_in_db = collection.count(filter={'email': username})
         if your_data_in_db != 0:
