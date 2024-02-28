@@ -289,6 +289,18 @@ class MongoDBCollection:
 
 
 def scrape_your_student_data():
+    """
+    Scrapes and updates the student data in the collection.
+
+    This function checks if the student data already exists in the collection. If it does, it prompts the user to delete duplicates or update the existing data.
+    If the data does not exist or the user chooses to update, it scrapes the student data from the website, updates the collection, and prints a success message.
+
+    Parameters:
+    None
+
+    Returns:
+    None
+    """
     
     with MongoDBCollection(connection_string, db_name, collection_name) as collection:
         your_data_in_db = collection.count(filter={'email': username})
