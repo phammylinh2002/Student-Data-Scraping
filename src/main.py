@@ -224,11 +224,11 @@ class MongoDBCollection:
         else:
             raise ValueError("`amount` must be 'one', 'some', or 'all'. If `amount` is 'one' or 'some', `query` must be provided.")
 
-    def find(self, amount='one', query={}):
+    def find(self, amount='one', query={}, project={}):
         if amount == 'one':
-            return self.collection.find_one(query)
+            return self.collection.find_one(query, project)
         elif amount == 'many':
-            return self.collection.find(query)
+            return self.collection.find(query, project)
 
     def count(self, filter={}):
         if filter:
@@ -307,6 +307,11 @@ def scrape_classmate_links():
             all_classmate_profile_links = scraper.scrape_classmate_profile_links(your_profile_link, your_valid_course_data)
             print(f"\nFound {len(all_classmate_profile_links)} unique classmates in {len(your_valid_course_data)} valid classes.\n")
             scraper.driver.quit()
+            with open('classmates_profile_links', 'w') as file:
+                file.write('')
+            with open('classmates_profile_links', 'a') as file:
+                for link in all_classmate_profile_links:
+                    file.write(link + '\n')
     return all_classmate_profile_links
 
 
@@ -335,8 +340,25 @@ def scrape_classmate_data(scraper, links):
                     print(f"{e}")
 
 
-
-
+def scrape_missed_classmate_data():
+    with open('classmates_profile_links', 'r') as f:
+        if not f.read().strip():
+            all_classmates_profile_links = scrape_classmate_links()
+        else:
+            all_classmates_profile_links = [line.strip() for line in open('classmates_profile_links', 'r').readlines()]
+    with MongoDBCollection(connection_string, db_name, collection_name) as collection:
+        scraped_classmates = [link['profile_link'] for link in collection.find(amount='many', query={'email': {'$ne': username}}, project={'profile_link':1, '_id':0})]
+        missed_classmates = list(set(all_classmates_profile_links).difference(scraped_classmates))
+        if len(missed_classmates) > 0:
+            print(f"\nFound {len(missed_classmates)} missed classmates.")
+            scraper = Scraper(url, username, password).login()
+            for link in missed_classmates:
+                classmate_data = scraper.scrape_profile(is_mine=False, profile_link=link)
+                classmate_data['courses'] = scraper.scrape_courses(link)
+                collection.insert(classmate_data)
+            scraper.driver.quit()
+        else:
+            print("\nNo missed classmates found.")
 
 
 def scrape_new_student_data():
@@ -350,7 +372,7 @@ def scrape_new_student_data():
         None
     """
     # Check data in the collection
-    collection = MongoDBCollection(os.environ['MONGODB_CONNECTION_STRING'], os.environ['MONGODB_DB_NAME'], os.environ['MONGODB_COLLECTION_NAME'])
+    collection = MongoDBCollection(connection_string, db_name, collection_name)
     data_count = collection.find().count()
     if data_count == 0:
         print("No data found in the collection. Please scrape all student data first.")
@@ -430,14 +452,17 @@ def main():
     collection_name = os.environ['MONGODB_COLLECTION_NAME']
     
     option1 = '\n[1] Scrape your data'
-    option2 = '\n[2] Scrape ALL classmate data'
-    option3 = '\n[3] Scrape NEW classmate data'
-    option4 = '\n[4] Update your classmate course data'
-    which_action = input(f"Which action do you want to perform?{option1}{option2}{option3}{option4}\nYour answer: ")
-    if which_action in ['1', '2', '3', '4']:
+    option2 = '\n[2] Scrape classmates\' profile links'
+    option3 = '\n[3] Scrape ALL classmate data'
+    option4 = '\n[4] Scrape NEW classmate data'
+    option5 = '\n[5] Update your classmate course data'
+    which_action = input(f"Which action do you want to perform?{option1}{option2}{option3}{option4}{option5}\nYour answer: ")
+    if which_action in ['1', '2', '3', '4', '5']:
         if which_action == '1':
             scrape_your_student_data()
         elif which_action == '2':
+            scrape_missed_classmate_data()
+        elif which_action == '3':
             # Clear the file which used to see which classmates' data have been scraped
             with open('scraped_classmates.txt', 'w') as file:
                 file.write('')
@@ -460,9 +485,9 @@ def main():
                         print(f"An error occurred: {e}")
             for scraper in scrapers:
                 scraper.driver.quit()
-        elif which_action == '3':
-            scrape_new_student_data()
         elif which_action == '4':
+            scrape_new_student_data()
+        elif which_action == '5':
             update_your_classmate_courses()
     else:
         print("Invalid input. Please try again.")
