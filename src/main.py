@@ -321,16 +321,22 @@ def scrape_classmate_data(scraper, links):
         None
     """
     with MongoDBCollection(connection_string, db_name, collection_name) as collection:
-        for i, link in enumerate(links, start=1):
-            try:
-                if i % 10 == 0:
-                    time.sleep(30)
-                classmate_data = scraper.scrape_profile(is_mine=False, profile_link=link)
-                classmate_data['courses'] = scraper.scrape_courses(link)
-                collection.insert(classmate_data)
-                print(f"{classmate_data['name']}'s data was scraped.")
-            except Exception as e:
-                print(f"{e}")
+        with open('scraped_classmates.txt', 'a') as file:
+            for i, link in enumerate(links, start=1):
+                try:
+                    if i % 10 == 0:
+                        time.sleep(30)
+                    classmate_data = scraper.scrape_profile(is_mine=False, profile_link=link)
+                    classmate_data['courses'] = scraper.scrape_courses(link)
+                    collection.insert(classmate_data)
+                    # print(f"{classmate_data['name']}'s data was scraped.")
+                    file.write(classmate_data['name']+ '\n')
+                except Exception as e:
+                    print(f"{e}")
+
+
+
+
 
 
 def scrape_new_student_data():
@@ -432,6 +438,10 @@ def main():
         if which_action == '1':
             scrape_your_student_data()
         elif which_action == '2':
+            # Clear the file which used to see which classmates' data have been scraped
+            with open('scraped_classmates.txt', 'w') as file:
+                file.write('')
+            # Get all classmate profile links
             all_classmate_profile_links = scrape_classmate_links()
             # Split the links into equal-sized chunks for each scraper
             no_of_scrapers = 10
