@@ -188,9 +188,9 @@ class Scraper:
         
         # Return the set of profile links based on the update
         if is_update == True:
-            return all_classmate_profile_links.difference(old_classmate_profile_links)
+            return list(all_classmate_profile_links.difference(old_classmate_profile_links))
         else:
-            return all_classmate_profile_links
+            return list(all_classmate_profile_links)
 
 class MongoDBCollection:
     def __init__(self, connection_string, db_name, collection_name):
@@ -321,8 +321,10 @@ def scrape_classmate_data(scraper, links):
         None
     """
     with MongoDBCollection(connection_string, db_name, collection_name) as collection:
-        for link in links:
+        for i, link in enumerate(links, start=1):
             try:
+                if i % 10 == 0:
+                    time.sleep(30)
                 classmate_data = scraper.scrape_profile(is_mine=False, profile_link=link)
                 classmate_data['courses'] = scraper.scrape_courses(link)
                 collection.insert(classmate_data)
@@ -430,7 +432,7 @@ def main():
         if which_action == '1':
             scrape_your_student_data()
         elif which_action == '2':
-            all_classmate_profile_links = list(scrape_classmate_links())
+            all_classmate_profile_links = scrape_classmate_links()
             # Split the links into equal-sized chunks for each scraper
             no_of_scrapers = 10
             links_per_scraper = len(all_classmate_profile_links) // no_of_scrapers
