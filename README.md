@@ -29,12 +29,12 @@ Of course yes. It's crucial to understand that if fellow HSU students use my pro
    `pip install -r requirements.txt`
 4. Change the name of the `.env.example` file:
    `mv .env.example .env`
-5. Fill in the values in the `.env` file. Remember that:
-   **MLEARNING_USERNAME**: Your student email address
-   **MLEARNING_PASSWORD**: Your password
-   **MONGODB_CONNECTION_STRING**: The connection string to your cluster on MongoDB
-   **MONGODB_DB_NAME**: The name of the database you want to store your data in
-   **MONGODB_COLLECTION_NAME**: The name of the collection in the database
+5. Fill in the values in the `.env` file. Remember that:<br>
+   **MLEARNING_USERNAME**: Your student email address<br>
+   **MLEARNING_PASSWORD**: Your password<br>
+   **MONGODB_CONNECTION_STRING**: The connection string to your cluster on MongoDB<br>
+   **MONGODB_DB_NAME**: The name of the database you want to store your data in<br>
+   **MONGODB_COLLECTION_NAME**: The name of the collection in the database<br>
 6. Run the `main.py` and you are done.
 
 ## My findings after completing the project
