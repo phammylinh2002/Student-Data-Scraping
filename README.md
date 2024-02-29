@@ -25,9 +25,9 @@ Of course yes. It's crucial to understand that if fellow HSU students use my pro
    * [Get Started with Atlas](https://www.mongodb.com/docs/atlas/getting-started/)
    * [Create, View, and Drop Databases](https://www.mongodb.com/docs/atlas/atlas-ui/databases/)
    * [Create, View, Drop, and Shard Collections](https://www.mongodb.com/docs/atlas/atlas-ui/collections/#create--view--drop--and-shard-collections)
-3. Install the libraries by executing this command:
+3. Install the libraries by executing this command:<br>
    `pip install -r requirements.txt`
-4. Change the name of the `.env.example` file:
+4. Change the name of the `.env.example` file:<br>
    `mv .env.example .env`
 5. Fill in the values in the `.env` file. Remember that:<br>
    **MLEARNING_USERNAME**: Your student email address<br>
