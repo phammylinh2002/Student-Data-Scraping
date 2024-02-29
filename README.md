@@ -90,5 +90,7 @@ Of course, the names were truncated, and the second one was manually edited to e
 ## What improvements are needed?
 
 **First and foremost:** Performance.
+<br>
 **Secondly:** Enhancing the data analysis. Perhaps, in the future, I'll revisit this data for more comprehensive analysis.
+<br>
 **Thirdly:** Refining my coding style :D Honestly, it's a bit convoluted. I need to focus on modularizing and effectively reusing code, as well as enhancing its readability.
