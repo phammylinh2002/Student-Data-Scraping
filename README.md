@@ -20,7 +20,7 @@ Of course yes. It's crucial to understand that if fellow HSU students use my pro
 
 ## How to use it?
 
-1. Clone this project (of course :D)
+1. Clone this project (of course 😀)
 2. Set up a database on MongoDB (because I use MongoDB). You'll need 1 collection to store the data. You may need to read these:
    * [Get Started with Atlas](https://www.mongodb.com/docs/atlas/getting-started/)
    * [Create, View, and Drop Databases](https://www.mongodb.com/docs/atlas/atlas-ui/databases/)
@@ -136,4 +136,4 @@ Of course, the names were truncated, and the second one was manually edited to e
 <br>
 **Secondly:** Enhancing the data analysis. Perhaps, in the future, I'll revisit this data for more comprehensive analysis.
 <br>
-**Thirdly:** Refining my coding style :D Honestly, it's a bit convoluted. I need to focus on modularizing and effectively reusing code, as well as enhancing its readability.
+**Thirdly:** Refining my coding style 😀 Honestly, it's a bit convoluted. I need to focus on modularizing and effectively reusing code, as well as enhancing its readability.
