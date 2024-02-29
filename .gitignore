@@ -3,3 +3,4 @@ my_courses.html
 student_data.txt
 scraped_classmates.txt
 classmates_profile_links.txt
+__pycache__
