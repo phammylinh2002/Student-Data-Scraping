@@ -21,12 +21,15 @@ Of course yes. It's crucial to understand that if fellow HSU students use my pro
 ## My findings after completing the project
 
 **1. Understanding the data is crucial**
+<br>
 I noticed that in the early phase, when I first entered my university and perhaps when teachers were just starting to use this platform, there was no standardized convention for class names. This inconsistency made it challenging for me to check and process the data. Additionally, some classes were not genuine courses; rather, they were created on MLearning solely for examinations. These classes, in my view, were not legitimate. Later on, class names began to follow a convention, but some classes still did not adhere to it, and new ones were created that also deviated from the convention. As a result, I labeled those that did not follow the convention as "invalid." The data of my classmates that I scraped is based on classes I deemed valid. However, for a comprehensive overview of all classes, I stored both invalid and valid classes. By considering data validation, I avoided including redundant data, particularly the information of classmates whom I never actually attended the same "real" class with.
 
 **2. Performance is key**
+<br>
 The more I delve into this project, the more I realize that while I can accomplish most tasks I set my mind to, achieving optimal performance remains a constant challenge. Initially, the idea of scraping data from MLearning intrigued me. Once I immersed myself in the project, I found the initial stages relatively straightforward. However, as I progressed, I encountered the true difficulty: performance issues. When I ran the program to scrape all my classmates' data, it started off quickly but slowed down significantly afterward. It became so sluggish that I couldn't even wait for it to complete. I addressed this by implementing concurrency, which improved runtime, but it still took over an hour to scrape data from about 600 classmates in the last run. Realizing that further optimization would lead to an endless cycle of ideas and delays, I decided to move on to another project. Although I've learned a valuable lesson about performance, I regret having to abandon this project. Nevertheless, the insights gained from this experience are invaluable, and it's a lesson I'll always remember.
 
 **3. I should use Google Chrome for web-scraping projects**
+<br>
 I initially chose Safari as the driver for my web scraping because it was my preferred browser. However, I soon encountered a persistent issue – I couldn't find a specific element. After investing a significant amount of time trying to figure out why the elements weren't being found despite using the correct path, I discovered the issue was with the Safari driver. After numerous attempts to troubleshoot on Safari, I decided to switch to Google Chrome. It wasn't clear whether the problem originated from Safari itself or if it was related to the Python library I was using (selenium). I set aside the question and proceeded to use Google Chrome as the driver for my web scraping project, and it has been my default browser ever since. And I promised myself to use Google Chrome for any other web-scraping projects in the future.
 
 ## So what are the anwsers to my questions?
@@ -66,4 +69,26 @@ Here is the complete list of the English names of the classes:
 
 I only have one classmate in each of those bottom classes, which indicates that I didn't meet many people from other majors besides business and technology. That makes sense because my major is closely related to business and technology.
 
+* **Who has taken the most classes with me?**
+
+Quite a few, actually. I discovered that the highest number of classes I've attended with a single individual is 7, and there are 5 people who have reached that same number.
+
+Here is the list of them, derived from [analysis.py](/src/analysis.py):
+
+```
+The maximum number of classes you took with a single person is: 7
+Here are the top 5 people who have taken the most classes with me:
+1. Tiến
+2. DAT********
+3. Thư
+4. Duy
+5. Vy
+```
+
+Of course, the names were truncated, and the second one was manually edited to ensure their identity remains protected.
+
 ## What improvements are needed?
+
+**First and foremost:** Performance.
+**Secondly:** Enhancing the data analysis. Perhaps, in the future, I'll revisit this data for more comprehensive analysis.
+**Thirdly:** Refining my coding style :D Honestly, it's a bit convoluted. I need to focus on modularizing and effectively reusing code, as well as enhancing its readability.
