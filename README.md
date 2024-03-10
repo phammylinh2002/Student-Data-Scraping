@@ -118,8 +118,7 @@ Quite a few, actually. I discovered that the highest number of classes I've atte
 
 Here is the list of them, derived from [analysis.py](/src/analysis.py):
 
-```
-The maximum number of classes I took with a single person is: 7
+```The maximum number of classes I took with a single person is: 7
 Here are the top 5 people who have taken the most classes with me:
 1. Tiến
 2. DAT********
@@ -134,6 +133,8 @@ Of course, the names were truncated, and the second one was manually edited to e
 
 **First and foremost:** Performance.
 <br>
+
 **Secondly:** Enhancing the data analysis. Perhaps, in the future, I'll revisit this data for more comprehensive analysis.
 <br>
+
 **Thirdly:** Refining my coding style 😀 Honestly, it's a bit convoluted. I need to focus on modularizing and effectively reusing code, as well as enhancing its readability.
