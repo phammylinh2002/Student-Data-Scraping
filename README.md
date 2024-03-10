@@ -82,7 +82,7 @@ Before going to the answer, here is how a classmate's data looks like in the dat
 After a long time of scraping, in my valid **22 courses**, I have **632 unique classmates**. I am amazed at how many people passed by my life and little of them stay.
 <br>
 
-* **Which classes have the most of my classmates enrolled?**
+* **Which classes have the MOST of my classmates enrolled?**
 
 Here are the top 5 classes which have the most of my classmates enrolled:
 ![Top 5 Classes Which Have The Most of My Classmates Enrolled](figures/Top%205%20Classes%20Which%20Have%20The%20Most%20of%20My%20Classmates%20Enrolled.png)
@@ -97,7 +97,7 @@ Here is the English names of the classes:
 
 The interesting thing is that I attended all of them. It's worth noting that the majority of my classmates are majoring in business and technology fields.
 
-* **Which classes have the most of my classmates enrolled?**
+* **Which classes have the LEAST of my classmates enrolled?**
 
 However, the bottom 5 classes are completely strange to me. Here are the bottom 5 classes which have the least of my classmates enrolled:
 ![Top 5 Classes Which Have The Most of My Classmates Enrolled](figures/Bottom%205%20Classes%20Which%20Have%20The%20Least%20of%20My%20Classmates%20Enrolled.png)
@@ -119,7 +119,7 @@ Quite a few, actually. I discovered that the highest number of classes I've atte
 Here is the list of them, derived from [analysis.py](/src/analysis.py):
 
 ```
-The maximum number of classes you took with a single person is: 7
+The maximum number of classes I took with a single person is: 7
 Here are the top 5 people who have taken the most classes with me:
 1. Tiến
 2. DAT********
